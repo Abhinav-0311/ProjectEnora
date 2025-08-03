@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/ui.unity
+    guid: 70ba2af8e222ba24d99814b130a90902
+  - enabled: 1
+    path: Assets/Scenes/Lore.unity
+    guid: 8cbeea88144f6d046b7182117768fc02
+  - enabled: 1
+    path: Assets/Scenes/Game.unity
+    guid: 94923e4c327560148b0d59084945561d
+  - enabled: 1
+    path: Assets/Scenes/Dungeon1.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
+  m_configObjects:
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_UseUCBPForAssetBundles: 0
