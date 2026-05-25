@@ -1,49 +1,58 @@
-# 🎮 ENORA – 3D Puzzle Dungeon Escape Game
+# ENORA
 
-**ENORA** is a 3D first-person puzzle game developed in Unity. Players explore a dungeon filled with symbolic rooms and challenging logic-based puzzles. The game blends exploration, environmental storytelling, and riddle-solving to offer an immersive escape room experience.
+ENORA is a first-person Unity puzzle game built around dungeon exploration, symbolic rooms, environmental storytelling, and a late-game combat encounter. The current project version includes menu flow, narrative HUD beats, interactable puzzles, cannon combat, and level progression across multiple scenes.
 
----
+## Project Stack
 
-## 🔧 Features
+- Unity 6 `6000.2.7f2`
+- Universal Render Pipeline (URP)
+- C#
+- Unity Input System
+- Cinemachine
 
-- Puzzle mechanics based on patterns, sequences, candles, and spatial logic  
-- Themed puzzle rooms inspired by moral and psychological concepts  
-- Boss battle featuring detection and attack mechanics  
-- Visual storytelling and narrative progression through environment design  
-- Custom interaction systems, audio management, and UI feedback  
-- Built using Unity URP and C#
+## Current Scene Flow
 
----
+The build settings currently use this sequence:
 
-## 🛠 Requirements
+1. `Main_Menu`
+2. `Controls`
+3. `lvl1`
+4. `lvl2`
 
-- Unity 2022.3 LTS or newer  
-- Windows OS (tested)  
-- Minimum 4 GB RAM  
-- Keyboard and mouse  
-- Git (for cloning, if needed)
+## Core Features
 
----
+- First-person exploration and interaction
+- Multi-stage puzzle progression
+- Candle, sequence, and object-order puzzle logic
+- Narrative subtitle triggers and scene-aware music flow
+- Cannon control section and boss-style demon encounter
+- Pause menu, audio managers, and scene reload/game over flows
 
-## ▶️ How to Run the Project
+## How To Open
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/Kuxhhhh/ProjectEnora.git
-Open the project in Unity 2022.3 LTS or later.
 
-Load the scene named UiScene.
+```bash
+git clone https://github.com/Abhinav-0311/ProjectEnora.git
+```
 
-Press Play to start the game from the main menu.
+2. Open the project folder in Unity Hub.
+3. Use Unity `6000.2.7f2` if available for the closest match to the current project.
+4. Open `Assets/Scenes/Main_Menu.unity`.
+5. Press Play in the Unity editor.
 
-👥 Team
-Abhinav Jain – Team Lead, Core Programming, Puzzle Design
+## Repository Notes
 
-Shiva Singh – UI Systems, Logic Integration
+- Unity-generated folders such as `Library`, `Logs`, `Temp`, `Builds`, and generated solution files are intentionally ignored in Git.
+- Large local archives such as `.unitypackage` files and build zips are also ignored so the repository stays focused on the source project.
 
-Priyanshu Jain – Sound Design, Interactions
+## Team
 
-Kush Sharma – Level Design, Puzzle Implementation
+- Abhinav Jain
+- Shiva Singh
+- Priyanshu Jain
+- Kush Sharma
 
-📌 Notes
-This project was created as part of a college coursework submission at VIT Bhopal. It is intended for educational and portfolio use only. Commercial use or redistribution is not permitted without permission.
+## Status
+
+This repository now contains the current local Unity project snapshot plus the earlier GitHub history merged into `main`.
