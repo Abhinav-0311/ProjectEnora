@@ -41,3 +41,7 @@ sysinfo.txt
 
 # Local archives and exports
 *.zip
+
+# Unused large source assets
+Assets/7Deadlysins/rocket-league-cuptrophy/source/Rocket League Cup/Rocket League Cup.blend
+Assets/7Deadlysins/rocket-league-cuptrophy/source/Rocket League Cup/Rocket League Cup.blend.meta
