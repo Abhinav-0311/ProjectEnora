@@ -1,0 +1,43 @@
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecords/
+
+# Asset pipeline and cache files
+Assets/AssetStoreTools*
+Assets/_Recovery/
+sysinfo.txt
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity / Visual Studio generated extras
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.dSYM
+
+# Local archives and exports
+*.zip
