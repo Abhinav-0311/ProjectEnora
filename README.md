@@ -28,6 +28,20 @@ The build settings currently use this sequence:
 - Cannon control section and boss-style demon encounter
 - Pause menu, audio managers, and scene reload/game over flows
 
+## Story Spine
+
+The project now follows a clearer narrative arc: "The Seven Trials of Atonement."
+
+- Level 1 is the dungeon of memory awakening where logic, order, perception, and repetition rebuild the player's understanding of their past.
+- Level 2 is the castle of judgment where buried guilt, ritual, the seven sins, death, and the demon confrontation reveal that the prison is a reflection of the player's own choices.
+- The ending reframes escape as a moral question instead of a simple victory state.
+
+## Narrative System
+
+- Scene intro lines can now play automatically for the opening, dungeon arrival, and castle arrival.
+- `StoryBeatTrigger` supports reusable story presets through `NarrativeBeatId`, so room triggers can pull authored lines without hardcoding text every time.
+- `NarrativeDefaultLines` and `NarrativeBeatLibrary` contain the current story copy for the prison intro, puzzle rooms, sin reveals, boss lines, and endings.
+
 ## How To Open
 
 1. Clone the repository:

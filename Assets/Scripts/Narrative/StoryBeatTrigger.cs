@@ -12,6 +12,10 @@ public class StoryBeatTrigger : MonoBehaviour
     [SerializeField] private bool triggerOnce = true;
     [SerializeField] private bool useTriggerCollider = true;
 
+    [Header("Narrative Preset")]
+    [SerializeField] private NarrativeBeatId beatId = NarrativeBeatId.None;
+    [SerializeField] private StoryChapter chapterOverride = StoryChapter.None;
+
     [TextArea(2, 6)]
     [SerializeField] private string subtitle;
 
@@ -62,12 +66,24 @@ public class StoryBeatTrigger : MonoBehaviour
 
     private void Fire()
     {
-        if (!string.IsNullOrWhiteSpace(subtitle))
+        NarrativeBeatDefinition beat = NarrativeBeatLibrary.Get(beatId);
+        string resolvedSubtitle = ResolveSubtitle(beat);
+        float resolvedSubtitleDuration = ResolveSubtitleDuration(beat);
+        string resolvedMusicTrack = ResolveMusicTrack(beat);
+        StoryChapter resolvedChapter = ResolveChapter(beat);
+
+        if (beatId != NarrativeBeatId.None)
+            NarrativeProgress.SetBeat(beatId);
+
+        if (resolvedChapter != StoryChapter.None)
+            NarrativeProgress.SetChapter(resolvedChapter);
+
+        if (!string.IsNullOrWhiteSpace(resolvedSubtitle))
         {
             if (NarrativeHUD.Instance != null)
-                NarrativeHUD.Instance.ShowSubtitle(subtitle.Trim(), subtitleDuration);
+                NarrativeHUD.Instance.ShowSubtitle(resolvedSubtitle.Trim(), resolvedSubtitleDuration);
             else
-                Debug.Log("[Story] " + subtitle);
+                Debug.Log("[Story] " + resolvedSubtitle);
         }
 
         if (voiceLine != null)
@@ -82,9 +98,41 @@ public class StoryBeatTrigger : MonoBehaviour
                 src.Play();
         }
 
-        if (!string.IsNullOrEmpty(musicTrackName) && MusicManager.Instance != null)
-            MusicManager.Instance.PlayMusic(musicTrackName);
+        if (!string.IsNullOrEmpty(resolvedMusicTrack) && MusicManager.Instance != null)
+            MusicManager.Instance.PlayMusic(resolvedMusicTrack);
 
         onStoryBeat?.Invoke();
+    }
+
+    private string ResolveSubtitle(NarrativeBeatDefinition beat)
+    {
+        if (!string.IsNullOrWhiteSpace(subtitle))
+            return subtitle.Trim();
+
+        return beat.Subtitle;
+    }
+
+    private float ResolveSubtitleDuration(NarrativeBeatDefinition beat)
+    {
+        if (!string.IsNullOrWhiteSpace(subtitle))
+            return subtitleDuration;
+
+        return beat.SubtitleDuration > 0f ? beat.SubtitleDuration : subtitleDuration;
+    }
+
+    private string ResolveMusicTrack(NarrativeBeatDefinition beat)
+    {
+        if (!string.IsNullOrEmpty(musicTrackName))
+            return musicTrackName;
+
+        return beat.MusicTrackName;
+    }
+
+    private StoryChapter ResolveChapter(NarrativeBeatDefinition beat)
+    {
+        if (chapterOverride != StoryChapter.None)
+            return chapterOverride;
+
+        return beat.Chapter;
     }
 }

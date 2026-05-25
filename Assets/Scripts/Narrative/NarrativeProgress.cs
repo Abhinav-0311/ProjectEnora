@@ -13,14 +13,22 @@ public enum StoryChapter
 public static class NarrativeProgress
 {
     public static StoryChapter CurrentChapter { get; private set; } = StoryChapter.None;
+    public static NarrativeBeatId CurrentBeat { get; private set; } = NarrativeBeatId.None;
+    public static string CurrentSceneName { get; private set; } = string.Empty;
 
     public static void SetChapter(StoryChapter chapter)
     {
         CurrentChapter = chapter;
     }
 
+    public static void SetBeat(NarrativeBeatId beatId)
+    {
+        CurrentBeat = beatId;
+    }
+
     public static void SetChapterFromSceneName(string sceneName)
     {
+        CurrentSceneName = sceneName ?? string.Empty;
         CurrentChapter = sceneName switch
         {
             SceneNames.MainMenu => StoryChapter.MainMenu,
