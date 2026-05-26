@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class ReloadScene : MonoBehaviour
 {
@@ -7,7 +6,7 @@ public class ReloadScene : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.JoystickButton8))
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            SceneTransitionController.ReloadCurrentScene();
         }
     }
 }

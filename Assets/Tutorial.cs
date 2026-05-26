@@ -1,17 +1,17 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class Tutorial : MonoBehaviour
 {
     // You can change this in the Inspector if needed
     public KeyCode startKey = KeyCode.Return; // 'Return' is the Enter key
+    public KeyCode controllerStartKey = KeyCode.JoystickButton2;
 
-    void Update()
+    private void Update()
     {
-        if (Input.GetKeyDown(startKey))
+        if (Input.GetKeyDown(startKey) || Input.GetKeyDown(controllerStartKey))
         {
             Debug.Log("Enter key pressed. Loading Level 1...");
-            SceneManager.LoadScene(SceneNames.Level1);
+            SceneTransitionController.LoadScene(SceneNames.Level1);
         }
     }
 }

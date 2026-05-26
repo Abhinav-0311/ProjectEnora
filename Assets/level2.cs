@@ -1,12 +1,13 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-/// <summary>Level 1 → Level 2: dungeon complete → castle / boss (lvl2).</summary>
+/// <summary>Level 1 to Level 2: dungeon complete to castle / boss (lvl2).</summary>
 public class level2 : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Player"))
-            SceneManager.LoadScene(SceneNames.Level2);
+        {
+            SceneTransitionController.LoadScene(SceneNames.Level2);
+        }
     }
 }

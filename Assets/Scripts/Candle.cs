@@ -8,10 +8,9 @@ public class Candle : Interactable
 
     public bool isLit { get; private set; } = false; // Ensure it starts false
 
-    [System.Obsolete]
     void Start()
     {
-        puzzleManager = FindObjectOfType<CandlePuzzle>();
+        puzzleManager = FindFirstObjectByType<CandlePuzzle>();
 
         // DEBUG: Check all child components
         candleLight = GetComponentInChildren<Light>();

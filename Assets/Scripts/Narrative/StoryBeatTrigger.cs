@@ -80,6 +80,14 @@ public class StoryBeatTrigger : MonoBehaviour
 
         if (!string.IsNullOrWhiteSpace(resolvedSubtitle))
         {
+            string logTitle = beatId != NarrativeBeatId.None
+                ? NarrativeProgress.GetBeatLabel(beatId)
+                : "Memory";
+            NarrativeProgress.AddLog(logTitle, resolvedSubtitle.Trim());
+        }
+
+        if (!string.IsNullOrWhiteSpace(resolvedSubtitle))
+        {
             if (NarrativeHUD.Instance != null)
                 NarrativeHUD.Instance.ShowSubtitle(resolvedSubtitle.Trim(), resolvedSubtitleDuration);
             else

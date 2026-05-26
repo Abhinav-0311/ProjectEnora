@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Boss aftermath: portal choice - escape (load scene) or stay (redemption ending, optional).
@@ -26,6 +25,8 @@ public class EndingPortal : MonoBehaviour
 
     private bool used;
 
+    public event System.Action<EndingKind> PortalEntered;
+
     private void OnTriggerEnter(Collider other)
     {
         if (used || !other.CompareTag(playerTag))
@@ -34,6 +35,7 @@ public class EndingPortal : MonoBehaviour
         }
 
         used = true;
+        PortalEntered?.Invoke(ending);
 
         if (NarrativeHUD.Instance != null && !string.IsNullOrWhiteSpace(lineOnEnter))
         {
@@ -61,6 +63,6 @@ public class EndingPortal : MonoBehaviour
     private IEnumerator LoadAfterDelay()
     {
         yield return new WaitForSecondsRealtime(delayBeforeLoad);
-        SceneManager.LoadScene(sceneToLoad);
+        SceneTransitionController.LoadScene(sceneToLoad);
     }
 }

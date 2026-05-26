@@ -70,7 +70,12 @@ public class NarrativeSceneIntro : MonoBehaviour
 
     private IEnumerator PlaySequence(IReadOnlyList<NarrativeBeatId> beatIds)
     {
-        yield return new WaitForSecondsRealtime(1f);
+        while (SceneTransitionController.Instance != null && SceneTransitionController.Instance.IsTransitioning)
+        {
+            yield return null;
+        }
+
+        yield return new WaitForSecondsRealtime(0.75f);
 
         for (int i = 0; i < beatIds.Count; i++)
         {
@@ -81,6 +86,13 @@ public class NarrativeSceneIntro : MonoBehaviour
             NarrativeProgress.SetBeat(beat.BeatId);
             if (beat.Chapter != StoryChapter.None)
                 NarrativeProgress.SetChapter(beat.Chapter);
+
+            if (!string.IsNullOrWhiteSpace(beat.Subtitle))
+            {
+                NarrativeProgress.AddLog(
+                    NarrativeProgress.GetBeatLabel(beat.BeatId),
+                    beat.Subtitle);
+            }
 
             if (!string.IsNullOrEmpty(beat.MusicTrackName) && MusicManager.Instance != null)
                 MusicManager.Instance.PlayMusic(beat.MusicTrackName);

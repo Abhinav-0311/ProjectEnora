@@ -7,36 +7,50 @@ public class PuzzleRaycastLogic : MonoBehaviour
     private string[] elements = { "Night", "Day", "Chaos", "Order" }; // Element names
     public GameManager gameManager; // Reference to the GameManager
     public int puzzleIndex; // Unique index for this puzzle (0, 1, 2, 3)
+    [SerializeField] private float interactionDistance = 3f;
 
     void Update()
     {
-        // Check for mouse click or controller input
-        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.JoystickButton2))
+        if (!Input.GetMouseButtonDown(0)
+            && !Input.GetKeyDown(KeyCode.E)
+            && !Input.GetKeyDown(KeyCode.JoystickButton2))
         {
-            // Raycast from the camera to the mouse position
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            return;
+        }
 
-            // Check if the ray hits the puzzle
-            if (Physics.Raycast(ray, out hit))
-            {
-                if (hit.transform == puzzle)
-                {
-                    RotatePuzzle();
-                }
-            }
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            return;
+        }
+
+        Transform targetPuzzle = puzzle != null ? puzzle : transform;
+        Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+        if (!Physics.Raycast(ray, out RaycastHit hit, interactionDistance))
+        {
+            return;
+        }
+
+        if (hit.transform == targetPuzzle || hit.transform.IsChildOf(targetPuzzle))
+        {
+            RotatePuzzle();
         }
     }
 
     void RotatePuzzle()
     {
+        Transform targetPuzzle = puzzle != null ? puzzle : transform;
+
         // Rotate the puzzle 90 degrees
-        puzzle.Rotate(0, 90, 0);
+        targetPuzzle.Rotate(0, 90, 0);
         currentIndex = (currentIndex + 1) % elements.Length;
 
         // Update the GameManager with the current element
-        gameManager.UpdatePuzzleState(puzzleIndex, elements[currentIndex]);
+        if (gameManager != null)
+        {
+            gameManager.UpdatePuzzleState(puzzleIndex, elements[currentIndex]);
+        }
 
-        Debug.Log($"{puzzle.name}: {elements[currentIndex]} aligned");
+        Debug.Log($"{targetPuzzle.name}: {elements[currentIndex]} aligned");
     }
 }

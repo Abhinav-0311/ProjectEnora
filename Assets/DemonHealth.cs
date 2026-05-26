@@ -3,6 +3,9 @@ using UnityEngine.Events;
 
 public class DemonHealth : MonoBehaviour
 {
+    public event System.Action<int> HitTaken;
+    public event System.Action Defeated;
+
     public int hitsToDie = 3;
     private int currentHits = 0;
 
@@ -22,6 +25,7 @@ public class DemonHealth : MonoBehaviour
         {
             currentHits++;
             Debug.Log("Demon hit! Total hits: " + currentHits);
+            HitTaken?.Invoke(currentHits);
 
             if (currentHits >= hitsToDie)
             {
@@ -47,6 +51,7 @@ public class DemonHealth : MonoBehaviour
         }
 
         onDefeated?.Invoke();
+        Defeated?.Invoke();
 
         // Optionally remove or deactivate the demon
         gameObject.SetActive(false);

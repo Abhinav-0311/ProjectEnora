@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class AnimatedPauseMenu : MonoBehaviour
@@ -9,9 +8,20 @@ public class AnimatedPauseMenu : MonoBehaviour
     public float fadeDuration = 0.5f;
 
     private bool isPaused;
+    private bool isAnimating;
+
+    private void Awake()
+    {
+        HidePauseMenuImmediately();
+    }
 
     private void Update()
     {
+        if (GameplayOverlayState.IsGameOver || isAnimating)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (isPaused)
@@ -27,15 +37,18 @@ public class AnimatedPauseMenu : MonoBehaviour
 
     private IEnumerator FadeInPauseMenu()
     {
-        if (pauseMenuUI == null)
+        if (pauseMenuUI == null || isPaused)
         {
             yield break;
         }
 
+        isAnimating = true;
+        GameplayOverlayState.ShowPauseOverlay();
+
         pauseMenuUI.gameObject.SetActive(true);
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        Time.timeScale = 0f;
+        pauseMenuUI.alpha = 0f;
+        pauseMenuUI.blocksRaycasts = true;
+        pauseMenuUI.interactable = true;
 
         isPaused = true;
 
@@ -48,20 +61,17 @@ public class AnimatedPauseMenu : MonoBehaviour
         }
 
         pauseMenuUI.alpha = 1f;
+        isAnimating = false;
     }
 
     private IEnumerator FadeOutPauseMenu()
     {
-        if (pauseMenuUI == null)
+        if (pauseMenuUI == null || !isPaused)
         {
             yield break;
         }
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        Time.timeScale = 1f;
-
-        isPaused = false;
+        isAnimating = true;
 
         float elapsed = 0f;
         while (elapsed < fadeDuration)
@@ -72,23 +82,48 @@ public class AnimatedPauseMenu : MonoBehaviour
         }
 
         pauseMenuUI.alpha = 0f;
+        pauseMenuUI.blocksRaycasts = false;
+        pauseMenuUI.interactable = false;
         pauseMenuUI.gameObject.SetActive(false);
+
+        isPaused = false;
+        isAnimating = false;
+        GameplayOverlayState.HidePauseOverlay();
     }
 
     public void ResumeGame()
     {
+        if (!isPaused || isAnimating)
+        {
+            return;
+        }
+
         StartCoroutine(FadeOutPauseMenu());
     }
 
     public void LoadMainMenu()
     {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneNames.MainMenu);
+        SceneTransitionController.LoadScene(SceneNames.MainMenu);
     }
 
     public void QuitGame()
     {
         Debug.Log("Quitting Game...");
         Application.Quit();
+    }
+
+    private void HidePauseMenuImmediately()
+    {
+        if (pauseMenuUI == null)
+        {
+            return;
+        }
+
+        pauseMenuUI.alpha = 0f;
+        pauseMenuUI.blocksRaycasts = false;
+        pauseMenuUI.interactable = false;
+        pauseMenuUI.gameObject.SetActive(false);
+        isPaused = false;
+        isAnimating = false;
     }
 }

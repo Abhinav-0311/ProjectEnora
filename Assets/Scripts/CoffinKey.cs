@@ -1,8 +1,11 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // For reloading scene if needed
 
 public class CoffinKey : Interactable
 {
+    public event System.Action<CoffinKey> CoffinChosen;
+    public event System.Action<CoffinKey> CorrectCoffinChosen;
+    public event System.Action<CoffinKey> WrongCoffinChosen;
+
     public bool isCorrectKey = false; // Assign TRUE only for the justified coffin
     private Animator coffinAnimator;
     public DoorOpener doorOpener; // Reference to door opener script
@@ -17,7 +20,7 @@ public class CoffinKey : Interactable
         coffinAnimator = GetComponent<Animator>();
         if (doorOpener == null)
         {
-            doorOpener = FindObjectOfType<DoorOpener>();
+            doorOpener = FindFirstObjectByType<DoorOpener>();
         }
 
         onInteract.AddListener(TriggerCoffin);
@@ -29,6 +32,7 @@ public class CoffinKey : Interactable
             return; // Don't allow opening twice
 
         hasBeenOpened = true;
+        CoffinChosen?.Invoke(this);
 
         // Play Coffin Open Animation
         if (coffinAnimator != null)
@@ -45,6 +49,7 @@ public class CoffinKey : Interactable
         if (isCorrectKey)
         {
             Debug.Log("Correct Key! Opening Door...");
+            CorrectCoffinChosen?.Invoke(this);
             if (doorOpener != null)
             {
                 doorOpener.OpenDoor();
@@ -53,9 +58,10 @@ public class CoffinKey : Interactable
         else
         {
             Debug.Log("Wrong Key! Restarting Scene...");
+            WrongCoffinChosen?.Invoke(this);
             if (wrongWhisperClip != null)
                 AudioSource.PlayClipAtPoint(wrongWhisperClip, transform.position, 0.9f);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            SceneTransitionController.ReloadCurrentScene();
         }
     }
 }

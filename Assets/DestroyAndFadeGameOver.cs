@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -14,7 +13,12 @@ public class DestroyAndFadeGameOver : MonoBehaviour
 
     private bool hasTriggered = false;
 
-    void Update()
+    private void Awake()
+    {
+        ConfigureHiddenCanvasState();
+    }
+
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.LeftAlt) && !hasTriggered)
         {
@@ -25,6 +29,8 @@ public class DestroyAndFadeGameOver : MonoBehaviour
 
     IEnumerator HandleGameOver()
     {
+        GameplayOverlayState.ShowGameOverOverlay();
+
         // Destroy all assigned objects
         foreach (GameObject obj in objectsToDestroy)
         {
@@ -37,14 +43,31 @@ public class DestroyAndFadeGameOver : MonoBehaviour
         {
             float elapsed = 0f;
             gameOverCanvas.alpha = 0f;
-            gameOverCanvas.blocksRaycasts = true; // Enable interaction if needed
+            gameOverCanvas.blocksRaycasts = false;
+            gameOverCanvas.interactable = false;
 
             while (elapsed < fadeDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 gameOverCanvas.alpha = Mathf.Clamp01(elapsed / fadeDuration);
                 yield return null;
             }
+
+            gameOverCanvas.alpha = 1f;
+            gameOverCanvas.blocksRaycasts = true;
+            gameOverCanvas.interactable = true;
         }
+    }
+
+    private void ConfigureHiddenCanvasState()
+    {
+        if (gameOverCanvas == null)
+        {
+            return;
+        }
+
+        gameOverCanvas.alpha = 0f;
+        gameOverCanvas.blocksRaycasts = false;
+        gameOverCanvas.interactable = false;
     }
 }

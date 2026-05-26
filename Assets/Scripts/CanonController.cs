@@ -65,7 +65,10 @@ public class CannonController : MonoBehaviour
 
    void HandleShooting()
 {
-    if (Input.GetKeyDown(KeyCode.Space) && Time.time >= nextShootTime)
+    if ((Input.GetKeyDown(KeyCode.Space)
+            || Input.GetKeyDown(KeyCode.JoystickButton0)
+            || Input.GetKeyDown(KeyCode.JoystickButton5))
+        && Time.time >= nextShootTime)
     {
         Shoot();
         nextShootTime = Time.time + shootCooldown; // Set next allowed shot time
@@ -96,6 +99,7 @@ public class CannonController : MonoBehaviour
         Vector3 startVelocity = firePoint.forward * launchForce;
 
         Vector3[] points = new Vector3[trajectoryPoints];
+        lineRenderer.positionCount = trajectoryPoints;
 
         for (int i = 0; i < trajectoryPoints; i++)
         {

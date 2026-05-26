@@ -3,63 +3,85 @@ using System.Collections;
 
 public class SevenObjectPuzzle : MonoBehaviour
 {
+    public event System.Action PuzzleStarted;
+    public event System.Action<GameObject, int> CorrectStep;
+    public event System.Action PuzzleReset;
+    public event System.Action PuzzleSolved;
+
     public GameObject[] interactableObjects; // Assign the 7 objects here
     public int[] correctOrder = { 0, 1, 2, 3, 4, 5, 6 }; // Correct interaction order (indexes)
     private int currentStep = 0;
     private Vector3[] originalPositions;
-private Vector3[] originalScales;
-
+    private Vector3[] originalScales;
 
     public GameObject door; // The door to open
     private Animator doorAnimator;
     public string doorOpenTrigger = "Open"; // Trigger to open door
 
     private Animator[] objectAnimators;
+    private bool hasStarted;
 
     void Start()
     {
         if (door != null)
-        doorAnimator = door.GetComponent<Animator>();
-
-    objectAnimators = new Animator[interactableObjects.Length];
-    originalPositions = new Vector3[interactableObjects.Length];
-    originalScales = new Vector3[interactableObjects.Length];
-
-    for (int i = 0; i < interactableObjects.Length; i++)
-    {
-        if (interactableObjects[i] != null)
         {
-            objectAnimators[i] = interactableObjects[i].GetComponent<Animator>();
-            originalPositions[i] = interactableObjects[i].transform.localPosition;
-            originalScales[i] = interactableObjects[i].transform.localScale;
+            doorAnimator = door.GetComponent<Animator>();
         }
-        else
+
+        objectAnimators = new Animator[interactableObjects.Length];
+        originalPositions = new Vector3[interactableObjects.Length];
+        originalScales = new Vector3[interactableObjects.Length];
+
+        for (int i = 0; i < interactableObjects.Length; i++)
         {
-            Debug.LogWarning("Missing object in interactableObjects at index: " + i);
+            if (interactableObjects[i] != null)
+            {
+                objectAnimators[i] = interactableObjects[i].GetComponent<Animator>();
+                originalPositions[i] = interactableObjects[i].transform.localPosition;
+                originalScales[i] = interactableObjects[i].transform.localScale;
+            }
+            else
+            {
+                Debug.LogWarning("Missing object in interactableObjects at index: " + i);
+            }
         }
     }
-    }
+
     public void ResetPuzzleManually()
-{
-    Debug.Log("Manual Reset Called!");
-
-    for (int i = 0; i < interactableObjects.Length; i++)
     {
-        if (objectAnimators[i] != null)
+        Debug.Log("Manual Reset Called!");
+
+        for (int i = 0; i < interactableObjects.Length; i++)
         {
-            objectAnimators[i].Play("Idle"); // Reset animation state to Idle
+            if (objectAnimators[i] != null)
+            {
+                objectAnimators[i].Play("Idle"); // Reset animation state to Idle
+            }
+
+            if (interactableObjects[i] != null)
+            {
+                interactableObjects[i].transform.localPosition = originalPositions[i];
+                interactableObjects[i].transform.localScale = originalScales[i];
+            }
         }
 
-        interactableObjects[i].transform.localPosition = originalPositions[i]; // Reset position
-        interactableObjects[i].transform.localScale = originalScales[i];       // Reset scale
+        currentStep = 0;
+        PuzzleReset?.Invoke();
     }
-
-    currentStep = 0;
-}
-
 
     public void InteractWithObject(GameObject obj)
     {
+        if (currentStep >= correctOrder.Length)
+        {
+            return;
+        }
+
+        if (!hasStarted)
+        {
+            hasStarted = true;
+            PuzzleStarted?.Invoke();
+        }
+
         int index = System.Array.IndexOf(interactableObjects, obj);
 
         if (index == -1)
@@ -80,10 +102,12 @@ private Vector3[] originalScales;
             }
 
             currentStep++;
+            CorrectStep?.Invoke(obj, currentStep - 1);
 
             if (currentStep == correctOrder.Length)
             {
                 OpenDoor();
+                PuzzleSolved?.Invoke();
             }
         }
         else
@@ -106,6 +130,7 @@ private Vector3[] originalScales;
 
         yield return new WaitForSeconds(0.5f);
         currentStep = 0;
+        PuzzleReset?.Invoke();
     }
 
     void OpenDoor()

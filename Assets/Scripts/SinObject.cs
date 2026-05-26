@@ -6,7 +6,7 @@ public class SinObject : Interactable
 
     void Start()
     {
-        puzzleManager = FindObjectOfType<SevenObjectPuzzle>();
+        puzzleManager = FindFirstObjectByType<SevenObjectPuzzle>();
         onInteract.AddListener(TriggerPuzzle);
     }
 

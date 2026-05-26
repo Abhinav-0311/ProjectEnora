@@ -9,6 +9,11 @@ public class PortalGameOverTrigger : MonoBehaviour
 
     private bool hasTriggered = false;
 
+    private void Awake()
+    {
+        ConfigureHiddenCanvasState();
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (!hasTriggered && other.CompareTag("Player"))
@@ -20,23 +25,39 @@ public class PortalGameOverTrigger : MonoBehaviour
 
     IEnumerator FadeGameOverUI()
     {
+        GameplayOverlayState.ShowGameOverOverlay();
+
         if (gameOverCanvas != null)
         {
             gameOverCanvas.alpha = 0f;
-            gameOverCanvas.blocksRaycasts = true;
-            gameOverCanvas.interactable = true;
+            gameOverCanvas.blocksRaycasts = false;
+            gameOverCanvas.interactable = false;
 
             float elapsed = 0f;
 
             while (elapsed < fadeDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 float t = Mathf.Clamp01(elapsed / fadeDuration);
                 gameOverCanvas.alpha = t;
                 yield return null;
             }
 
             gameOverCanvas.alpha = 1f;
+            gameOverCanvas.blocksRaycasts = true;
+            gameOverCanvas.interactable = true;
         }
+    }
+
+    private void ConfigureHiddenCanvasState()
+    {
+        if (gameOverCanvas == null)
+        {
+            return;
+        }
+
+        gameOverCanvas.alpha = 0f;
+        gameOverCanvas.blocksRaycasts = false;
+        gameOverCanvas.interactable = false;
     }
 }

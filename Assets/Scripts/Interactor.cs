@@ -12,7 +12,7 @@ public class Interactor : MonoBehaviour
     {
         if (crosshairController == null)
         {
-            crosshairController = FindObjectOfType<CrosshairController>();
+            crosshairController = FindFirstObjectByType<CrosshairController>();
         }
     }
 

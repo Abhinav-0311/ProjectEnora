@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>Hazard projectile. Default: reload current scene when hitting the player or cannon target.</summary>
 public class Fireball : MonoBehaviour
@@ -33,11 +32,11 @@ public class Fireball : MonoBehaviour
 
         if (reloadActiveSceneOnPlayerHit)
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            SceneTransitionController.ReloadCurrentScene();
         }
         else
         {
-            SceneManager.LoadScene(loadSceneNameOnPlayerHit);
+            SceneTransitionController.LoadScene(loadSceneNameOnPlayerHit);
         }
     }
 

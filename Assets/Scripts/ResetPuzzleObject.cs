@@ -6,7 +6,7 @@ public class ResetPuzzleObject : Interactable
 
     void Start()
     {
-        puzzleManager = FindObjectOfType<SevenObjectPuzzle>();
+        puzzleManager = FindFirstObjectByType<SevenObjectPuzzle>();
 
         if (puzzleManager == null)
         {
