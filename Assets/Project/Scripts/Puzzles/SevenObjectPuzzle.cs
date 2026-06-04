@@ -13,6 +13,7 @@ public class SevenObjectPuzzle : MonoBehaviour
     private int currentStep = 0;
     private Vector3[] originalPositions;
     private Vector3[] originalScales;
+    private bool[] loweredObjects;
 
     public GameObject door; // The door to open
     private Animator doorAnimator;
@@ -31,9 +32,12 @@ public class SevenObjectPuzzle : MonoBehaviour
         objectAnimators = new Animator[interactableObjects.Length];
         originalPositions = new Vector3[interactableObjects.Length];
         originalScales = new Vector3[interactableObjects.Length];
+        loweredObjects = new bool[interactableObjects.Length];
 
         for (int i = 0; i < interactableObjects.Length; i++)
         {
+            loweredObjects[i] = false;
+
             if (interactableObjects[i] != null)
             {
                 objectAnimators[i] = interactableObjects[i].GetComponent<Animator>();
@@ -53,6 +57,8 @@ public class SevenObjectPuzzle : MonoBehaviour
 
         for (int i = 0; i < interactableObjects.Length; i++)
         {
+            loweredObjects[i] = false;
+
             if (objectAnimators[i] != null)
             {
                 objectAnimators[i].Play("Idle"); // Reset animation state to Idle
@@ -92,6 +98,11 @@ public class SevenObjectPuzzle : MonoBehaviour
 
         Debug.Log("Interacted with object: " + obj.name + " at step " + currentStep);
 
+        if (loweredObjects[index])
+        {
+            return;
+        }
+
         if (index == correctOrder[currentStep])
         {
             // Correct interaction
@@ -101,6 +112,7 @@ public class SevenObjectPuzzle : MonoBehaviour
                 anim.SetTrigger("Godown"); // Play Godown trigger
             }
 
+            loweredObjects[index] = true;
             currentStep++;
             CorrectStep?.Invoke(obj, currentStep - 1);
 
@@ -130,6 +142,10 @@ public class SevenObjectPuzzle : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
         currentStep = 0;
+        for (int i = 0; i < loweredObjects.Length; i++)
+        {
+            loweredObjects[i] = false;
+        }
         PuzzleReset?.Invoke();
     }
 

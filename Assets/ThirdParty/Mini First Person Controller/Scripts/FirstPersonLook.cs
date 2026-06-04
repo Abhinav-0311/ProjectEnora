@@ -4,8 +4,10 @@ public class FirstPersonLook : MonoBehaviour
 {
     [SerializeField]
     Transform character;
+    [SerializeField] Camera attachedCamera;
     public float sensitivity = 2;
     public float smoothing = 1.5f;
+    [SerializeField] private float wallSafeNearClipPlane = 0.05f;
 
     Vector2 velocity;
     Vector2 frameVelocity;
@@ -15,12 +17,24 @@ public class FirstPersonLook : MonoBehaviour
     {
         // Get the character from the FirstPersonMovement in parents.
         character = GetComponentInParent<FirstPersonMovement>().transform;
+        attachedCamera = GetComponent<Camera>();
     }
 
     void Start()
     {
         // Lock the mouse cursor to the game screen.
         Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        if (attachedCamera == null)
+        {
+            attachedCamera = GetComponent<Camera>();
+        }
+
+        if (attachedCamera != null)
+        {
+            attachedCamera.nearClipPlane = Mathf.Min(attachedCamera.nearClipPlane, wallSafeNearClipPlane);
+        }
     }
 
     void Update()

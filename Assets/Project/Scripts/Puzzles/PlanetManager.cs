@@ -65,6 +65,7 @@ public class PlanetManager : MonoBehaviour
     private readonly List<string> playerInput = new List<string>();
     private readonly List<TextMesh> clueTitleMeshes = new List<TextMesh>();
     private readonly List<TextMesh> clueBodyMeshes = new List<TextMesh>();
+    private readonly string[] supportPillarNames = { "Pillar Torch", "Pillar Torch (1)" };
 
     private PlanetTrialPreset activePreset;
     private Transform clueBoard;
@@ -89,6 +90,7 @@ public class PlanetManager : MonoBehaviour
 
         SelectPreset();
         BuildRuntimeDisplays();
+        EnsureSupportColliders();
         RefreshClueBoard();
         RefreshCodeDisplay();
         SetStatus("Read the atlas. Enter the three worlds in order.");
@@ -427,7 +429,17 @@ public class PlanetManager : MonoBehaviour
 
     private bool ShouldShowHud()
     {
-        if (isSolved || clueBoard == null)
+        if (isSolved)
+        {
+            return false;
+        }
+
+        if (hasStarted)
+        {
+            return true;
+        }
+
+        if (clueBoard == null)
         {
             return false;
         }
@@ -484,6 +496,45 @@ public class PlanetManager : MonoBehaviour
         {
             materialInstance.SetColor("_Color", boardTint);
         }
+    }
+
+    private void EnsureSupportColliders()
+    {
+        for (int i = 0; i < supportPillarNames.Length; i++)
+        {
+            GameObject pillar = GameObject.Find(supportPillarNames[i]);
+            if (pillar == null || pillar.GetComponent<BoxCollider>() != null)
+            {
+                continue;
+            }
+
+            if (!TryCalculateBounds(pillar, out Bounds bounds))
+            {
+                continue;
+            }
+
+            BoxCollider collider = pillar.AddComponent<BoxCollider>();
+            collider.center = pillar.transform.InverseTransformPoint(bounds.center);
+            collider.size = bounds.size;
+        }
+    }
+
+    private static bool TryCalculateBounds(GameObject target, out Bounds bounds)
+    {
+        Renderer[] renderers = target.GetComponentsInChildren<Renderer>(true);
+        if (renderers.Length == 0)
+        {
+            bounds = new Bounds();
+            return false;
+        }
+
+        bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+        {
+            bounds.Encapsulate(renderers[i].bounds);
+        }
+
+        return true;
     }
 
     private static TextMesh CreateWorldTextMesh(
