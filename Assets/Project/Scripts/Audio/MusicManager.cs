@@ -15,6 +15,8 @@ public class MusicManager : MonoBehaviour
     [SerializeField]
     private bool applyMusicFromSceneName = true;
 
+    private Coroutine crossfadeRoutine;
+
     private void Awake()
     {
         if (Instance != null)
@@ -65,7 +67,19 @@ public class MusicManager : MonoBehaviour
             Debug.LogWarning($"MusicManager: no clip for track \"{trackName}\". Add it to MusicLibrary.");
             return;
         }
-        StartCoroutine(AnimateMusicCrossfade(clip, fadeDuration));
+
+        if (musicSource.clip == clip && musicSource.isPlaying)
+        {
+            musicSource.loop = true;
+            return;
+        }
+
+        if (crossfadeRoutine != null)
+        {
+            StopCoroutine(crossfadeRoutine);
+        }
+
+        crossfadeRoutine = StartCoroutine(AnimateMusicCrossfade(clip, fadeDuration));
     }
  
     IEnumerator AnimateMusicCrossfade(AudioClip nextTrack, float fadeDuration = 0.5f)
@@ -79,6 +93,7 @@ public class MusicManager : MonoBehaviour
         }
  
         musicSource.clip = nextTrack;
+        musicSource.loop = true;
         musicSource.Play();
  
         percent = 0;
@@ -88,5 +103,8 @@ public class MusicManager : MonoBehaviour
             musicSource.volume = Mathf.Lerp(0, 1f, percent);
             yield return null;
         }
+
+        musicSource.volume = 1f;
+        crossfadeRoutine = null;
     }
 }

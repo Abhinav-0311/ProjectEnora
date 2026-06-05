@@ -70,7 +70,6 @@ public class KeypadManager : MonoBehaviour
     };
 
     private static int s_lastPresetIndex = -1;
-    private static Font s_builtinFont;
 
     [Header("Puzzle Flow")]
     [SerializeField] private Animator doorAnimator;
@@ -79,8 +78,8 @@ public class KeypadManager : MonoBehaviour
 
     [Header("Runtime Clue Board")]
     [SerializeField] private string clueBoardObjectName = "Room1ClueBoard";
-    [SerializeField] private Color boardTint = new Color(0.13f, 0.1f, 0.07f, 1f);
-    [SerializeField] private Color boardAccent = new Color(0.84f, 0.74f, 0.56f, 1f);
+    [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
+    [SerializeField] private Color boardAccent = new Color(0.27f, 0.16f, 0.07f, 1f);
 
     [Header("Runtime Display Offsets")]
     [SerializeField] private Vector3 cluePanelOffset = new Vector3(0f, 0f, 0.018f);
@@ -118,7 +117,7 @@ public class KeypadManager : MonoBehaviour
         BuildRuntimeDisplays();
         UpdateClueBoard();
         RefreshCodeDisplay();
-        SetStatus("Read the tablet. Enter the pattern one digit at a time.");
+        SetStatus("Study the parchment and test the first seal.");
         RefreshRuntimeVisibility();
     }
 
@@ -160,7 +159,7 @@ public class KeypadManager : MonoBehaviour
 
         if (playerInput.Count < activePreset.Sequence.Length)
         {
-            SetStatus($"Seal {playerInput.Count} of {activePreset.Sequence.Length} recorded.");
+            SetStatus($"{playerInput.Count} of {activePreset.Sequence.Length} seals answer.");
             return;
         }
 
@@ -172,7 +171,7 @@ public class KeypadManager : MonoBehaviour
         {
             playerInput.Clear();
             RefreshCodeDisplay();
-            SetStatus("All four seals rang false. The memory wipes clean.");
+            SetStatus("The lock rejects the memory. All seals fall silent.");
             PuzzleFailed?.Invoke();
         }
     }
@@ -196,7 +195,7 @@ public class KeypadManager : MonoBehaviour
         }
 
         RefreshCodeDisplay(showSolvedState: true);
-        SetStatus("The first lock yields. The next chamber awakens.");
+        SetStatus("The first lock yields.");
         RefreshRuntimeVisibility();
         PuzzleSolved?.Invoke();
     }
@@ -261,20 +260,32 @@ public class KeypadManager : MonoBehaviour
         Image panel = CreatePanelImage(
             canvasGo.transform,
             "Panel",
-            new Vector2(520f, 150f),
-            new Color(0.02f, 0.02f, 0.02f, 0.86f),
+            new Vector2(310f, 92f),
+            new Color(0.05f, 0.035f, 0.02f, 0.44f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
-            new Vector2(32f, 28f));
+            new Vector2(28f, 24f));
+
+        CreateText(
+            panel.transform,
+            "Heading",
+            new Vector2(250f, 22f),
+            new Vector2(0f, 1f),
+            new Vector2(0f, 1f),
+            new Vector2(18f, -14f),
+            16,
+            boardAccent,
+            TextAnchor.UpperLeft,
+            FontStyle.Bold).text = "FORGOTTEN MIND";
 
         codeText = CreateText(
             panel.transform,
             "Code",
-            new Vector2(460f, 56f),
+            new Vector2(250f, 28f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(24f, -20f),
-            30,
+            new Vector2(18f, -42f),
+            20,
             boardAccent,
             TextAnchor.MiddleLeft,
             FontStyle.Bold);
@@ -282,12 +293,12 @@ public class KeypadManager : MonoBehaviour
         statusText = CreateText(
             panel.transform,
             "Status",
-            new Vector2(460f, 70f),
+            new Vector2(250f, 26f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
-            new Vector2(24f, 18f),
-            20,
-            new Color(0.92f, 0.92f, 0.92f, 1f),
+            new Vector2(18f, 12f),
+            14,
+            new Color(0.95f, 0.92f, 0.85f, 0.96f),
             TextAnchor.LowerLeft,
             FontStyle.Normal);
     }
@@ -320,10 +331,10 @@ public class KeypadManager : MonoBehaviour
         }
 
         string clueText =
-            activePreset.Title.ToUpperInvariant() +
+            activePreset.Title +
             "\n\n" +
             activePreset.Riddle +
-            "\n\nPRESS E AT THE KEYPAD.";
+            "\n\nListen for four answers.";
 
         for (int i = 0; i < clueBodyMeshes.Count; i++)
         {
@@ -339,26 +350,22 @@ public class KeypadManager : MonoBehaviour
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.Append("LOCK MEMORY: ");
+        builder.Append("Seals ");
 
         for (int i = 0; i < activePreset.Sequence.Length; i++)
         {
-            if (i < playerInput.Count)
+            if (showSolvedState || i < playerInput.Count)
             {
-                builder.Append(playerInput[i]);
-            }
-            else if (showSolvedState)
-            {
-                builder.Append(activePreset.Sequence[i]);
+                builder.Append("[x]");
             }
             else
             {
-                builder.Append("_");
+                builder.Append("[ ]");
             }
 
             if (i < activePreset.Sequence.Length - 1)
             {
-                builder.Append("  ");
+                builder.Append(" ");
             }
         }
 
@@ -424,7 +431,8 @@ public class KeypadManager : MonoBehaviour
 
     private void CreateClueSide(string sideName)
     {
-        Font font = GetBuiltinFont();
+        Font titleFont = RuntimeTypography.GetDisplayFont();
+        Font bodyFont = RuntimeTypography.GetBodyFont();
         Vector3 localOffset = new Vector3(cluePanelOffset.x, cluePanelOffset.y, cluePanelOffset.z);
         Vector3 sideOffset = clueBoard.TransformDirection(localOffset);
         Quaternion sideRotation = Quaternion.LookRotation(-clueBoard.forward, clueBoard.up);
@@ -439,9 +447,9 @@ public class KeypadManager : MonoBehaviour
         TextMesh title = CreateWorldTextMesh(
             root.transform,
             "Title",
-            font,
+            titleFont,
             42,
-            0.014f,
+            0.013f,
             boardAccent,
             new Vector3(0f, 0.2f, 0f),
             TextAnchor.MiddleCenter,
@@ -451,11 +459,11 @@ public class KeypadManager : MonoBehaviour
         TextMesh body = CreateWorldTextMesh(
             root.transform,
             "Body",
-            font,
-            26,
-            0.0105f,
-            new Color(0.96f, 0.93f, 0.86f, 1f),
-            new Vector3(0f, 0.045f, 0f),
+            bodyFont,
+            25,
+            0.0095f,
+            new Color(0.2f, 0.12f, 0.06f, 1f),
+            new Vector3(0f, 0.038f, 0f),
             TextAnchor.UpperCenter,
             TextAlignment.Center);
         clueBodyMeshes.Add(body);
@@ -491,6 +499,11 @@ public class KeypadManager : MonoBehaviour
         if (isSolved || clueBoard == null)
         {
             return false;
+        }
+
+        if (hasStarted)
+        {
+            return true;
         }
 
         Camera mainCamera = Camera.main;
@@ -602,27 +615,16 @@ public class KeypadManager : MonoBehaviour
         text.horizontalOverflow = HorizontalWrapMode.Wrap;
         text.verticalOverflow = VerticalWrapMode.Overflow;
         text.text = string.Empty;
+
+        Shadow shadow = textGo.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.3f);
+        shadow.effectDistance = new Vector2(1.1f, -1.1f);
+
         return text;
     }
 
     private static Font GetBuiltinFont()
     {
-        if (s_builtinFont != null)
-        {
-            return s_builtinFont;
-        }
-
-        s_builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        if (s_builtinFont == null)
-        {
-            s_builtinFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        }
-
-        if (s_builtinFont == null)
-        {
-            s_builtinFont = Font.CreateDynamicFontFromOSFont("Arial", 24);
-        }
-
-        return s_builtinFont;
+        return RuntimeTypography.GetBodyFont();
     }
 }

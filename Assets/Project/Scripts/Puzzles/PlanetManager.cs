@@ -38,7 +38,25 @@ public class PlanetManager : MonoBehaviour
             "Start with the red omen.\n" +
             "Then the king of storms must answer.\n" +
             "Finish beneath the rings of old judgment.",
-            "Mars", "Jupiter", "Saturn")
+            "Mars", "Jupiter", "Saturn"),
+        new PlanetTrialPreset(
+            "Atlas of Silence",
+            "Begin with the forgotten wanderer.\n" +
+            "Then wake the blue world furthest from the sun.\n" +
+            "End with the tilted exile that rolls through the dark.",
+            "Pluto", "Neptune", "Uranus"),
+        new PlanetTrialPreset(
+            "Atlas of Tempests",
+            "First the red war-sign answers.\n" +
+            "Then the tilted storm-bearer must turn.\n" +
+            "Finish at the ocean world beyond it.",
+            "Mars", "Uranus", "Neptune"),
+        new PlanetTrialPreset(
+            "Atlas of Ashes",
+            "Begin with the smallest messenger.\n" +
+            "Then seek the world that still remembers water.\n" +
+            "End with the planet crowned by storms.",
+            "Mercury", "Earth", "Jupiter")
     };
 
     private static int lastPresetIndex = -1;
@@ -55,8 +73,8 @@ public class PlanetManager : MonoBehaviour
 
     [Header("Board Styling")]
     [SerializeField] private string clueBoardObjectName = "Room2ClueBoard";
-    [SerializeField] private Color boardTint = new Color(0.11f, 0.09f, 0.07f, 1f);
-    [SerializeField] private Color accentColor = new Color(0.8f, 0.74f, 0.58f, 1f);
+    [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
+    [SerializeField] private Color accentColor = new Color(0.27f, 0.16f, 0.07f, 1f);
     [SerializeField] private Vector3 boardOffset = new Vector3(0f, 0f, 0.02f);
     [SerializeField] private float clueVisibleDistance = 2.8f;
     [SerializeField] private float hudVisibleDistance = 4.8f;
@@ -65,6 +83,7 @@ public class PlanetManager : MonoBehaviour
     private readonly List<string> playerInput = new List<string>();
     private readonly List<TextMesh> clueTitleMeshes = new List<TextMesh>();
     private readonly List<TextMesh> clueBodyMeshes = new List<TextMesh>();
+    private readonly List<Transform> planetNameplates = new List<Transform>();
     private readonly string[] supportPillarNames = { "Pillar Torch", "Pillar Torch (1)" };
 
     private PlanetTrialPreset activePreset;
@@ -93,7 +112,8 @@ public class PlanetManager : MonoBehaviour
         EnsureSupportColliders();
         RefreshClueBoard();
         RefreshCodeDisplay();
-        SetStatus("Read the atlas. Enter the three worlds in order.");
+        BuildPlanetNameplates();
+        SetStatus("Read the atlas and test the first world.");
         RefreshRuntimeVisibility();
     }
 
@@ -110,6 +130,7 @@ public class PlanetManager : MonoBehaviour
     private void Update()
     {
         RefreshRuntimeVisibility();
+        RefreshPlanetNameplates();
     }
 
     private void HandleButtonPress(string value)
@@ -135,7 +156,7 @@ public class PlanetManager : MonoBehaviour
 
         if (playerInput.Count < activePreset.Sequence.Length)
         {
-            SetStatus($"Constellation {playerInput.Count} of {activePreset.Sequence.Length} is fixed.");
+            SetStatus($"{playerInput.Count} of {activePreset.Sequence.Length} worlds answer.");
             return;
         }
 
@@ -147,7 +168,7 @@ public class PlanetManager : MonoBehaviour
         {
             playerInput.Clear();
             RefreshCodeDisplay();
-            SetStatus("The stars reject the order. The sky resets.");
+            SetStatus("The stars reject the order. The sky falls silent.");
             PuzzleFailed?.Invoke();
         }
     }
@@ -171,7 +192,7 @@ public class PlanetManager : MonoBehaviour
         }
 
         RefreshCodeDisplay(true);
-        SetStatus("The heavens align. The next chamber opens.");
+        SetStatus("The heavens align.");
         RefreshRuntimeVisibility();
         PuzzleSolved?.Invoke();
     }
@@ -216,7 +237,8 @@ public class PlanetManager : MonoBehaviour
         clueTitleMeshes.Clear();
         clueBodyMeshes.Clear();
 
-        Font font = GetBuiltinFont();
+        Font titleFont = RuntimeTypography.GetDisplayFont();
+        Font bodyFont = RuntimeTypography.GetBodyFont();
 
         GameObject root = new GameObject("Room2ClueFront");
         root.transform.SetParent(clueBoard.parent, true);
@@ -228,9 +250,9 @@ public class PlanetManager : MonoBehaviour
         clueTitleMeshes.Add(CreateWorldTextMesh(
             root.transform,
             "Title",
-            font,
+            titleFont,
             40,
-            0.0135f,
+            0.0128f,
             accentColor,
             new Vector3(0f, 0.19f, 0f),
             TextAnchor.MiddleCenter,
@@ -239,11 +261,11 @@ public class PlanetManager : MonoBehaviour
         clueBodyMeshes.Add(CreateWorldTextMesh(
             root.transform,
             "Body",
-            font,
-            26,
-            0.0105f,
-            new Color(0.96f, 0.93f, 0.86f, 1f),
-            new Vector3(0f, 0.04f, 0f),
+            bodyFont,
+            25,
+            0.0095f,
+            new Color(0.2f, 0.12f, 0.06f, 1f),
+            new Vector3(0f, 0.036f, 0f),
             TextAnchor.UpperCenter,
             TextAlignment.Center));
     }
@@ -265,20 +287,20 @@ public class PlanetManager : MonoBehaviour
         Image panel = CreatePanelImage(
             canvasGo.transform,
             "Panel",
-            new Vector2(560f, 176f),
-            new Color(0.02f, 0.02f, 0.02f, 0.86f),
+            new Vector2(320f, 96f),
+            new Color(0.05f, 0.035f, 0.02f, 0.44f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
-            new Vector2(32f, 28f));
+            new Vector2(28f, 24f));
 
         CreateText(
             panel.transform,
             "Heading",
-            new Vector2(500f, 28f),
+            new Vector2(260f, 24f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(24f, -16f),
-            22,
+            new Vector2(18f, -14f),
+            16,
             accentColor,
             TextAnchor.UpperLeft,
             FontStyle.Bold).text = "COSMIC ORDER";
@@ -286,24 +308,24 @@ public class PlanetManager : MonoBehaviour
         codeText = CreateText(
             panel.transform,
             "Code",
-            new Vector2(500f, 40f),
+            new Vector2(260f, 28f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(24f, -54f),
-            28,
-            new Color(0.94f, 0.9f, 0.82f, 1f),
+            new Vector2(18f, -40f),
+            20,
+            accentColor,
             TextAnchor.MiddleLeft,
             FontStyle.Bold);
 
         statusText = CreateText(
             panel.transform,
             "Status",
-            new Vector2(500f, 56f),
+            new Vector2(260f, 26f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
-            new Vector2(24f, 18f),
-            19,
-            new Color(0.9f, 0.9f, 0.9f, 1f),
+            new Vector2(18f, 12f),
+            14,
+            new Color(0.95f, 0.92f, 0.85f, 0.96f),
             TextAnchor.LowerLeft,
             FontStyle.Normal);
     }
@@ -336,10 +358,10 @@ public class PlanetManager : MonoBehaviour
         }
 
         string clueText =
-            activePreset.Title.ToUpperInvariant() +
+            activePreset.Title +
             "\n\n" +
             activePreset.Clue +
-            "\n\nPRESS E AT EACH PLANET.";
+            "\n\nTrust the atlas, not the sky.";
 
         for (int i = 0; i < clueBodyMeshes.Count; i++)
         {
@@ -355,26 +377,22 @@ public class PlanetManager : MonoBehaviour
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.Append("STAR PATH: ");
+        builder.Append("Worlds ");
 
         for (int i = 0; i < activePreset.Sequence.Length; i++)
         {
-            if (i < playerInput.Count)
+            if (showSolvedState || i < playerInput.Count)
             {
-                builder.Append(playerInput[i].ToUpperInvariant());
-            }
-            else if (showSolvedState)
-            {
-                builder.Append(activePreset.Sequence[i].ToUpperInvariant());
+                builder.Append("[x]");
             }
             else
             {
-                builder.Append("?");
+                builder.Append("[ ]");
             }
 
             if (i < activePreset.Sequence.Length - 1)
             {
-                builder.Append("  ->  ");
+                builder.Append(" ");
             }
         }
 
@@ -495,6 +513,84 @@ public class PlanetManager : MonoBehaviour
         if (materialInstance.HasProperty("_Color"))
         {
             materialInstance.SetColor("_Color", boardTint);
+        }
+    }
+
+    private void BuildPlanetNameplates()
+    {
+        PlanetButton[] planetButtons = FindObjectsByType<PlanetButton>(FindObjectsSortMode.None);
+        Font font = RuntimeTypography.GetBodyFont();
+        planetNameplates.Clear();
+        HashSet<Transform> labeledButtons = new HashSet<Transform>();
+
+        for (int i = 0; i < planetButtons.Length; i++)
+        {
+            PlanetButton button = planetButtons[i];
+            if (button == null || string.IsNullOrWhiteSpace(button.buttonValue))
+            {
+                continue;
+            }
+
+            PlanetButton rootButton = button.GetComponentInParent<PlanetButton>();
+            Transform buttonRoot = rootButton != null ? rootButton.transform : button.transform;
+            if (!labeledButtons.Add(buttonRoot))
+            {
+                continue;
+            }
+
+            Transform existingLabel = buttonRoot.Find("RuntimePlanetLabel");
+            if (existingLabel != null)
+            {
+                planetNameplates.Add(existingLabel);
+                continue;
+            }
+
+            GameObject labelGo = new GameObject("RuntimePlanetLabel", typeof(TextMesh));
+            labelGo.transform.SetParent(buttonRoot, false);
+            labelGo.transform.localPosition = new Vector3(0f, 0.48f, 0f);
+            labelGo.transform.localRotation = Quaternion.identity;
+
+            TextMesh textMesh = labelGo.GetComponent<TextMesh>();
+            textMesh.font = font;
+            textMesh.fontSize = 28;
+            textMesh.characterSize = 0.026f;
+            textMesh.anchor = TextAnchor.MiddleCenter;
+            textMesh.alignment = TextAlignment.Center;
+            textMesh.color = new Color(0.95f, 0.91f, 0.82f, 0.98f);
+            textMesh.text = button.buttonValue.ToUpperInvariant();
+
+            MeshRenderer renderer = labelGo.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = font.material;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+
+            planetNameplates.Add(labelGo.transform);
+        }
+    }
+
+    private void RefreshPlanetNameplates()
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < planetNameplates.Count; i++)
+        {
+            Transform label = planetNameplates[i];
+            if (label == null)
+            {
+                continue;
+            }
+
+            Vector3 toCamera = label.position - mainCamera.transform.position;
+            if (toCamera.sqrMagnitude <= 0.0001f)
+            {
+                continue;
+            }
+
+            label.rotation = Quaternion.LookRotation(toCamera.normalized, Vector3.up);
         }
     }
 
@@ -626,25 +722,19 @@ public class PlanetManager : MonoBehaviour
         text.horizontalOverflow = HorizontalWrapMode.Wrap;
         text.verticalOverflow = VerticalWrapMode.Overflow;
         text.text = string.Empty;
+
+        Shadow shadow = textGo.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.3f);
+        shadow.effectDistance = new Vector2(1.1f, -1.1f);
+
         return text;
     }
 
     private static Font GetBuiltinFont()
     {
-        if (builtinFont != null)
-        {
-            return builtinFont;
-        }
-
-        builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         if (builtinFont == null)
         {
-            builtinFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        }
-
-        if (builtinFont == null)
-        {
-            builtinFont = Font.CreateDynamicFontFromOSFont("Arial", 24);
+            builtinFont = RuntimeTypography.GetBodyFont();
         }
 
         return builtinFont;

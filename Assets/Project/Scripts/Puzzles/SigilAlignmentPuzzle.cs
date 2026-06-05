@@ -14,8 +14,8 @@ public class SigilAlignmentPuzzle : MonoBehaviour
 
     [Header("Room 3 Board")]
     [SerializeField] private string clueBoardObjectName = "Room3ClueBoard";
-    [SerializeField] private Color boardTint = new Color(0.11f, 0.09f, 0.07f, 1f);
-    [SerializeField] private Color accentColor = new Color(0.82f, 0.74f, 0.58f, 1f);
+    [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
+    [SerializeField] private Color accentColor = new Color(0.27f, 0.16f, 0.07f, 1f);
     [SerializeField] private Vector3 boardOffset = new Vector3(0f, 0f, 0.02f);
     [SerializeField] private float clueVisibleDistance = 3f;
     [SerializeField] private float facingDotThreshold = 0.45f;
@@ -28,6 +28,7 @@ public class SigilAlignmentPuzzle : MonoBehaviour
 
     private void Awake()
     {
+        AutoBindPuzzleControllers();
         BuildClueBoard();
     }
 
@@ -38,6 +39,11 @@ public class SigilAlignmentPuzzle : MonoBehaviour
 
     public void UpdatePuzzleState(int puzzleIndex, string element)
     {
+        if (!IsValidPuzzleIndex(puzzleIndex))
+        {
+            return;
+        }
+
         if (!hasStarted)
         {
             hasStarted = true;
@@ -72,6 +78,16 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         }
     }
 
+    public void InitializePuzzleState(int puzzleIndex, string element)
+    {
+        if (!IsValidPuzzleIndex(puzzleIndex) || isSolved)
+        {
+            return;
+        }
+
+        currentSequence[puzzleIndex] = element;
+    }
+
     private bool IsSequenceCorrect()
     {
         for (int i = 0; i < correctSequence.Length; i++)
@@ -80,6 +96,11 @@ public class SigilAlignmentPuzzle : MonoBehaviour
                 return false;
         }
         return true;
+    }
+
+    private bool IsValidPuzzleIndex(int puzzleIndex)
+    {
+        return puzzleIndex >= 0 && puzzleIndex < currentSequence.Length;
     }
 
     private void BuildClueBoard()
@@ -140,14 +161,66 @@ public class SigilAlignmentPuzzle : MonoBehaviour
             "Body",
             26,
             0.0105f,
-            new Color(0.96f, 0.93f, 0.86f, 1f),
+            new Color(0.2f, 0.12f, 0.06f, 1f),
             new Vector3(0f, 0.04f, 0f),
             TextAnchor.UpperCenter,
-            "Four faces answer to one truth.\n\n" +
-            "Align them as:\nORDER -> CHAOS -> DAY -> NIGHT\n\n" +
-            "What shifts is not the truth.\nOnly your angle does.");
+            "Each stone shows a name. The colors lie.\n\n" +
+            "First the realm is steadied.\n" +
+            "Then it is broken.\n" +
+            "Then the sky wakes.\n" +
+            "Then darkness seals it.\n\n" +
+            "Turn the stones until the four truths stand in that order.");
 
         RefreshClueVisibility();
+    }
+
+    private void AutoBindPuzzleControllers()
+    {
+        PuzzleRaycastRotator[] rotators = FindObjectsByType<PuzzleRaycastRotator>(FindObjectsSortMode.None);
+        System.Array.Sort(rotators, (left, right) => CompareByHorizontalPosition(left, right));
+        for (int i = 0; i < rotators.Length; i++)
+        {
+            if (rotators[i] == null)
+            {
+                continue;
+            }
+
+            rotators[i].gameManager = this;
+            rotators[i].puzzleIndex = i;
+        }
+
+        PuzzleRaycastLogic[] alternateRotators = FindObjectsByType<PuzzleRaycastLogic>(FindObjectsSortMode.None);
+        System.Array.Sort(alternateRotators, (left, right) => CompareByHorizontalPosition(left, right));
+        for (int i = 0; i < alternateRotators.Length; i++)
+        {
+            if (alternateRotators[i] == null)
+            {
+                continue;
+            }
+
+            alternateRotators[i].gameManager = this;
+            alternateRotators[i].puzzleIndex = i;
+        }
+    }
+
+    private static int CompareByHorizontalPosition(MonoBehaviour left, MonoBehaviour right)
+    {
+        if (left == null && right == null)
+        {
+            return 0;
+        }
+
+        if (left == null)
+        {
+            return 1;
+        }
+
+        if (right == null)
+        {
+            return -1;
+        }
+
+        return left.transform.position.x.CompareTo(right.transform.position.x);
     }
 
     private void RefreshClueVisibility()
@@ -227,16 +300,7 @@ public class SigilAlignmentPuzzle : MonoBehaviour
             return builtinFont;
         }
 
-        builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        if (builtinFont == null)
-        {
-            builtinFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        }
-
-        if (builtinFont == null)
-        {
-            builtinFont = Font.CreateDynamicFontFromOSFont("Arial", 24);
-        }
+        builtinFont = RuntimeTypography.GetBodyFont();
 
         return builtinFont;
     }

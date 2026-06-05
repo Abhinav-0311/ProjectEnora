@@ -55,7 +55,7 @@ public static class GameplayOverlayState
 
     public static void PrepareForSceneTransition()
     {
-        if (!overlayActive && Time.timeScale == 1f)
+        if (!overlayActive && !controlsSuppressed && Time.timeScale == 1f)
         {
             return;
         }

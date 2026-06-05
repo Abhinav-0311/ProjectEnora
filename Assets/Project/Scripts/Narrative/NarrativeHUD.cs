@@ -114,82 +114,81 @@ public class NarrativeHUD : MonoBehaviour
             gameObject.AddComponent<GraphicRaycaster>();
         }
 
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
-                    ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
-        if (font == null)
-        {
-            font = Font.CreateDynamicFontFromOSFont("Arial", 24);
-        }
+        Font displayFont = RuntimeTypography.GetDisplayFont();
+        Font bodyFont = RuntimeTypography.GetBodyFont();
 
         Image objectivePanel = CreatePanel(
             transform,
             "ObjectivePanel",
-            new Vector2(450f, 170f),
+            new Vector2(390f, 160f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
             new Vector2(28f, -28f),
-            new Color(0.03f, 0.03f, 0.03f, 0.84f));
+            new Color(0.05f, 0.04f, 0.03f, 0.48f));
 
         chapterText = CreateText(
             objectivePanel.transform,
             "Chapter",
-            font,
-            18,
-            new Vector2(390f, 26f),
+            bodyFont,
+            14,
+            new Vector2(330f, 22f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(22f, -18f),
-            new Color(0.76f, 0.67f, 0.5f, 1f),
+            new Vector2(20f, -16f),
+            new Color(0.88f, 0.79f, 0.61f, 0.96f),
             TextAnchor.UpperLeft,
             FontStyle.Bold);
 
         objectiveTitleText = CreateText(
             objectivePanel.transform,
             "ObjectiveTitle",
-            font,
-            28,
-            new Vector2(390f, 40f),
+            displayFont,
+            22,
+            new Vector2(340f, 54f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(22f, -52f),
-            new Color(0.94f, 0.9f, 0.82f, 1f),
+            new Vector2(20f, -42f),
+            new Color(0.98f, 0.94f, 0.84f, 1f),
             TextAnchor.UpperLeft,
             FontStyle.Bold);
+        objectiveTitleText.resizeTextForBestFit = true;
+        objectiveTitleText.resizeTextMinSize = 15;
+        objectiveTitleText.resizeTextMaxSize = 22;
 
         objectiveBodyText = CreateText(
             objectivePanel.transform,
             "ObjectiveBody",
-            font,
-            20,
-            new Vector2(390f, 78f),
+            bodyFont,
+            16,
+            new Vector2(340f, 74f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(22f, -94f),
-            new Color(0.88f, 0.88f, 0.88f, 1f),
+            new Vector2(20f, -102f),
+            new Color(0.94f, 0.91f, 0.84f, 0.96f),
             TextAnchor.UpperLeft,
             FontStyle.Normal);
 
         Image subtitlePanel = CreatePanel(
             transform,
             "SubtitlePanel",
-            new Vector2(1180f, 120f),
+            new Vector2(840f, 78f),
             new Vector2(0.5f, 0f),
             new Vector2(0.5f, 0f),
-            new Vector2(0f, 40f),
-            new Color(0.01f, 0.01f, 0.01f, 0.72f));
+            new Vector2(0f, 28f),
+            new Color(0.05f, 0.035f, 0.02f, 0.32f));
 
         subtitleText = CreateText(
             subtitlePanel.transform,
             "StorySubtitle",
-            font,
-            24,
-            new Vector2(1080f, 86f),
+            displayFont,
+            19,
+            new Vector2(760f, 54f),
             new Vector2(0.5f, 0.5f),
             new Vector2(0.5f, 0.5f),
             Vector2.zero,
-            new Color(0.92f, 0.9f, 0.85f, 1f),
+            new Color(0.97f, 0.94f, 0.86f, 0.98f),
             TextAnchor.MiddleCenter,
-            FontStyle.Normal);
+            FontStyle.Italic);
         subtitleText.horizontalOverflow = HorizontalWrapMode.Wrap;
         subtitleText.verticalOverflow = VerticalWrapMode.Truncate;
         subtitlePanel.gameObject.SetActive(false);
@@ -197,35 +196,35 @@ public class NarrativeHUD : MonoBehaviour
         contextPanel = CreatePanel(
             transform,
             "ContextPanel",
-            new Vector2(520f, 150f),
+            new Vector2(390f, 110f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
-            new Vector2(28f, 120f),
-            new Color(0.03f, 0.03f, 0.03f, 0.84f)).gameObject;
+            new Vector2(28f, 112f),
+            new Color(0.05f, 0.04f, 0.03f, 0.46f)).gameObject;
 
         contextTitleText = CreateText(
             contextPanel.transform,
             "ContextTitle",
-            font,
-            22,
-            new Vector2(460f, 30f),
+            displayFont,
+            18,
+            new Vector2(340f, 26f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(20f, -18f),
-            new Color(0.94f, 0.9f, 0.82f, 1f),
+            new Vector2(18f, -14f),
+            new Color(0.98f, 0.94f, 0.84f, 1f),
             TextAnchor.UpperLeft,
             FontStyle.Bold);
 
         contextBodyText = CreateText(
             contextPanel.transform,
             "ContextBody",
-            font,
-            18,
-            new Vector2(460f, 84f),
+            bodyFont,
+            15,
+            new Vector2(340f, 62f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(20f, -52f),
-            new Color(0.88f, 0.88f, 0.88f, 1f),
+            new Vector2(18f, -42f),
+            new Color(0.95f, 0.92f, 0.85f, 0.95f),
             TextAnchor.UpperLeft,
             FontStyle.Normal);
         contextPanel.SetActive(false);
@@ -233,13 +232,13 @@ public class NarrativeHUD : MonoBehaviour
         journalHintText = CreateText(
             transform,
             "JournalHint",
-            font,
-            16,
-            new Vector2(300f, 28f),
+            bodyFont,
+            14,
+            new Vector2(250f, 24f),
             new Vector2(1f, 0f),
             new Vector2(1f, 0f),
             new Vector2(-24f, 24f),
-            new Color(0.76f, 0.67f, 0.5f, 0.95f),
+            new Color(0.89f, 0.8f, 0.63f, 0.9f),
             TextAnchor.LowerRight,
             FontStyle.Italic);
         journalHintText.text = "Press J to open the memory log";
@@ -247,22 +246,22 @@ public class NarrativeHUD : MonoBehaviour
         journalPanel = CreatePanel(
             transform,
             "JournalPanel",
-            new Vector2(560f, 640f),
+            new Vector2(470f, 560f),
             new Vector2(1f, 0.5f),
             new Vector2(1f, 0.5f),
             new Vector2(-26f, 0f),
-            new Color(0.025f, 0.02f, 0.015f, 0.94f)).gameObject;
+            new Color(0.04f, 0.03f, 0.02f, 0.78f)).gameObject;
 
         Text journalHeaderText = CreateText(
             journalPanel.transform,
             "JournalHeader",
-            font,
-            26,
-            new Vector2(500f, 32f),
+            displayFont,
+            22,
+            new Vector2(410f, 30f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(26f, -22f),
-            new Color(0.94f, 0.9f, 0.82f, 1f),
+            new Vector2(22f, -18f),
+            new Color(0.98f, 0.94f, 0.84f, 1f),
             TextAnchor.UpperLeft,
             FontStyle.Bold);
         journalHeaderText.text = "MEMORY LOG";
@@ -270,13 +269,13 @@ public class NarrativeHUD : MonoBehaviour
         journalText = CreateText(
             journalPanel.transform,
             "JournalBody",
-            font,
-            18,
-            new Vector2(500f, 520f),
+            bodyFont,
+            16,
+            new Vector2(410f, 450f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(26f, -72f),
-            new Color(0.88f, 0.88f, 0.88f, 1f),
+            new Vector2(22f, -62f),
+            new Color(0.95f, 0.92f, 0.85f, 0.95f),
             TextAnchor.UpperLeft,
             FontStyle.Normal);
         journalText.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -406,6 +405,8 @@ public class NarrativeHUD : MonoBehaviour
                 ? "Keep moving. The realm is still judging you."
                 : body;
         }
+
+        RefreshObjectiveLayout();
     }
 
     private void HandleLogEntryAdded(NarrativeLogEntry entry)
@@ -516,6 +517,32 @@ public class NarrativeHUD : MonoBehaviour
         }
     }
 
+    private void RefreshObjectiveLayout()
+    {
+        if (objectiveTitleText == null || objectiveBodyText == null)
+        {
+            return;
+        }
+
+        RectTransform panelRect = objectiveTitleText.transform.parent as RectTransform;
+        RectTransform titleRect = objectiveTitleText.rectTransform;
+        RectTransform bodyRect = objectiveBodyText.rectTransform;
+        if (panelRect == null || titleRect == null || bodyRect == null)
+        {
+            return;
+        }
+
+        float titleHeight = Mathf.Clamp(objectiveTitleText.preferredHeight + 4f, 34f, 68f);
+        titleRect.sizeDelta = new Vector2(titleRect.sizeDelta.x, titleHeight);
+
+        float bodyHeight = Mathf.Clamp(objectiveBodyText.preferredHeight + 6f, 46f, 94f);
+        bodyRect.anchoredPosition = new Vector2(bodyRect.anchoredPosition.x, -52f - titleHeight);
+        bodyRect.sizeDelta = new Vector2(bodyRect.sizeDelta.x, bodyHeight);
+
+        float panelHeight = Mathf.Clamp(70f + titleHeight + bodyHeight, 140f, 192f);
+        panelRect.sizeDelta = new Vector2(panelRect.sizeDelta.x, panelHeight);
+    }
+
     private static Image CreatePanel(
         Transform parent,
         string name,
@@ -572,6 +599,11 @@ public class NarrativeHUD : MonoBehaviour
         text.horizontalOverflow = HorizontalWrapMode.Wrap;
         text.verticalOverflow = VerticalWrapMode.Overflow;
         text.text = string.Empty;
+
+        Shadow shadow = textGo.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.38f);
+        shadow.effectDistance = new Vector2(1.2f, -1.2f);
+
         return text;
     }
 }

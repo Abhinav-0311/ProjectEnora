@@ -46,9 +46,10 @@ public class MusicLibrary : MonoBehaviour
         switch (requestedTrackName)
         {
             case MusicTrackNames.Menu:
-                return "MainMenu";
             case MusicTrackNames.Lore:
+                return "MainMenu";
             case MusicTrackNames.Dungeon:
+                return "MainMenu";
             case MusicTrackNames.Castle:
             case MusicTrackNames.Boss:
             case MusicTrackNames.Ending:
