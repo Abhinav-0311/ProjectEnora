@@ -59,6 +59,11 @@ public class CoffinKey : Interactable
         else
         {
             WrongCoffinChosen?.Invoke(this);
+            if (NarrativeHUD.Instance != null)
+            {
+                NarrativeHUD.Instance.ShowContextCard("Hall of Death", "The coffin was false. Judgment returns you to the beginning.", 2.4f);
+            }
+
             if (wrongWhisperClip != null)
                 AudioSource.PlayClipAtPoint(wrongWhisperClip, transform.position, 0.9f);
             SceneTransitionController.ReloadCurrentScene();

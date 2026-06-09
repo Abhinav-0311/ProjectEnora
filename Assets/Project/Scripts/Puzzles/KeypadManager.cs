@@ -78,17 +78,17 @@ public class KeypadManager : MonoBehaviour
 
     [Header("Runtime Clue Board")]
     [SerializeField] private string clueBoardObjectName = "Room1ClueBoard";
-    [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
+    [SerializeField] private Color boardTint = new Color(0.86f, 0.76f, 0.55f, 1f);
     [SerializeField] private Color boardAccent = new Color(0.27f, 0.16f, 0.07f, 1f);
-    [SerializeField] private Color titleTextColor = new Color(0.13f, 0.07f, 0.03f, 1f);
-    [SerializeField] private Color bodyTextColor = new Color(0.11f, 0.06f, 0.03f, 1f);
+    [SerializeField] private Color titleTextColor = new Color(0.08f, 0.04f, 0.015f, 1f);
+    [SerializeField] private Color bodyTextColor = new Color(0.06f, 0.035f, 0.015f, 1f);
     [SerializeField] private Color hudTextColor = new Color(0.96f, 0.93f, 0.86f, 0.98f);
 
     [Header("Runtime Display Offsets")]
     [SerializeField] private Vector3 cluePanelOffset = new Vector3(0f, 0f, 0.018f);
-    [SerializeField] private float clueVisibleDistance = 2.6f;
+    [SerializeField] private float clueVisibleDistance = 3.8f;
     [SerializeField] private float hudVisibleDistance = 4.5f;
-    [SerializeField] private float facingDotThreshold = 0.45f;
+    [SerializeField] private float facingDotThreshold = 0.28f;
 
     private readonly List<int> playerInput = new List<int>();
 
@@ -263,8 +263,8 @@ public class KeypadManager : MonoBehaviour
         Image panel = CreatePanelImage(
             canvasGo.transform,
             "Panel",
-            new Vector2(360f, 128f),
-            new Color(0.05f, 0.035f, 0.02f, 0.44f),
+            new Vector2(330f, 104f),
+            new Color(0.05f, 0.035f, 0.02f, 0.34f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
             new Vector2(28f, 24f));
@@ -296,7 +296,7 @@ public class KeypadManager : MonoBehaviour
         statusText = CreateText(
             panel.transform,
             "Status",
-            new Vector2(300f, 40f),
+            new Vector2(290f, 32f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
             new Vector2(20f, 14f),
@@ -337,7 +337,7 @@ public class KeypadManager : MonoBehaviour
             activePreset.Title +
             "\n\n" +
             activePreset.Riddle +
-            "\n\nListen for four answers.";
+            "\n\nEnter the four answers in order.";
 
         for (int i = 0; i < clueBodyMeshes.Count; i++)
         {
@@ -353,7 +353,7 @@ public class KeypadManager : MonoBehaviour
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.Append("Input: ");
+        builder.Append("Typed: ");
 
         for (int i = 0; i < activePreset.Sequence.Length; i++)
         {
@@ -506,7 +506,8 @@ public class KeypadManager : MonoBehaviour
         }
 
         float facingDot = Vector3.Dot(mainCamera.transform.forward, toBoard.normalized);
-        return facingDot >= facingDotThreshold;
+        return facingDot >= facingDotThreshold
+            && WorldTextMeshUtility.HasClearSight(mainCamera, clueBoard, targetPosition);
     }
 
     private bool ShouldShowHud()

@@ -31,6 +31,51 @@ public static class WorldTextMeshUtility
         renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
     }
 
+    public static bool HasClearSight(Camera camera, Transform targetRoot, Vector3 targetPosition)
+    {
+        if (camera == null || targetRoot == null)
+        {
+            return false;
+        }
+
+        Vector3 origin = camera.transform.position;
+        Vector3 direction = targetPosition - origin;
+        float distance = direction.magnitude;
+        if (distance <= Mathf.Epsilon)
+        {
+            return true;
+        }
+
+        Ray ray = new Ray(origin, direction / distance);
+        RaycastHit[] hits = Physics.RaycastAll(ray, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        if (hits.Length == 0)
+        {
+            return true;
+        }
+
+        System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Transform hitTransform = hits[i].transform;
+            if (hitTransform == null)
+            {
+                continue;
+            }
+
+            if (hitTransform == targetRoot
+                || hitTransform.IsChildOf(targetRoot)
+                || targetRoot.IsChildOf(hitTransform)
+                || hitTransform.IsChildOf(camera.transform.root))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
     private static Material GetOrCreateMaterial(Font font, Color color)
     {
         string key = font.GetInstanceID() + "_" + ColorUtility.ToHtmlStringRGBA(color);

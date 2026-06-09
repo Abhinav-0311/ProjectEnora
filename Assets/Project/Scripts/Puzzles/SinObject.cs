@@ -6,7 +6,7 @@ public class SinObject : Interactable
 
     void Start()
     {
-        SetPromptAction("offer this relic");
+        SetPromptAction($"offer {BuildRelicName(gameObject.name)}");
         puzzleManager = FindFirstObjectByType<SevenObjectPuzzle>();
         onInteract.RemoveListener(TriggerPuzzle);
         onInteract.AddListener(TriggerPuzzle);
@@ -18,5 +18,19 @@ public class SinObject : Interactable
         {
             puzzleManager.InteractWithObject(gameObject);
         }
+    }
+
+    private static string BuildRelicName(string objectName)
+    {
+        if (string.IsNullOrWhiteSpace(objectName))
+        {
+            return "this relic";
+        }
+
+        return objectName
+            .Replace("Barrel", string.Empty)
+            .Replace("(Clone)", string.Empty)
+            .Trim()
+            .ToLowerInvariant();
     }
 }

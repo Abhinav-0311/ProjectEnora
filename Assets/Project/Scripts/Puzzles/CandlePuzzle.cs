@@ -44,12 +44,26 @@ public class CandlePuzzle : MonoBehaviour
             if (currentStep == correctOrder.Length)
             {
                 OpenDoor("DoorOpen");
+                ShowPuzzleHint("The ritual accepts the final flame.");
                 PuzzleSolved?.Invoke();
+            }
+            else
+            {
+                ShowPuzzleHint($"Flame {currentStep}/{correctOrder.Length} accepted.");
             }
         }
         else
         {
+            ShowPuzzleHint("The ritual rejects that flame. Begin again.");
             ResetCandles();
+        }
+    }
+
+    public void ShowPuzzleHint(string message)
+    {
+        if (NarrativeHUD.Instance != null)
+        {
+            NarrativeHUD.Instance.ShowContextCard("Ritual of Light", message, 2.2f);
         }
     }
 

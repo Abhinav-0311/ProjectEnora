@@ -24,6 +24,7 @@ public class ResetPuzzleObject : Interactable
         if (puzzleManager != null)
         {
             puzzleManager.ResetPuzzleManually();
+            puzzleManager.ShowPuzzleHint("The relic order has been reset.");
         }
     }
 }

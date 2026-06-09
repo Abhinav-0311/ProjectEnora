@@ -10,18 +10,15 @@ public class Candle : Interactable
 
     void Start()
     {
-        SetPromptAction("light the candle");
+        SetPromptAction($"light candle {candleIndex}");
         puzzleManager = FindFirstObjectByType<CandlePuzzle>();
 
-        // DEBUG: Check all child components
         candleLight = GetComponentInChildren<Light>();
         if (candleLight == null)
         {
             Debug.LogError("No Light found on " + gameObject.name + ". Checking manually...");
-            
-            // Alternative method to find Light component manually
             candleLight = transform.Find("Point Light")?.GetComponent<Light>();
-            
+
             if (candleLight == null)
             {
                 Debug.LogError("Still no Light found! Make sure a Point Light is a child of " + gameObject.name);
@@ -40,22 +37,29 @@ public class Candle : Interactable
 
     public void LightCandle()
     {
-        if (!isLit)
+        if (isLit)
         {
-            isLit = true;
-            if (candleLight != null)
-            {
-                candleLight.enabled = true; // Enable the light
-            }
-            else
-            {
-                Debug.LogError("Candle Light is still missing for " + gameObject.name);
-            }
-
             if (puzzleManager != null)
             {
-                puzzleManager.CheckCandleOrder(candleIndex);
+                puzzleManager.ShowPuzzleHint("That candle is already burning.");
             }
+
+            return;
+        }
+
+        isLit = true;
+        if (candleLight != null)
+        {
+            candleLight.enabled = true; // Enable the light
+        }
+        else
+        {
+            Debug.LogError("Candle Light is still missing for " + gameObject.name);
+        }
+
+        if (puzzleManager != null)
+        {
+            puzzleManager.CheckCandleOrder(candleIndex);
         }
     }
 

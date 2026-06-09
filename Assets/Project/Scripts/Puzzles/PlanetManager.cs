@@ -73,15 +73,15 @@ public class PlanetManager : MonoBehaviour
 
     [Header("Board Styling")]
     [SerializeField] private string clueBoardObjectName = "Room2ClueBoard";
-    [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
+    [SerializeField] private Color boardTint = new Color(0.86f, 0.76f, 0.55f, 1f);
     [SerializeField] private Color accentColor = new Color(0.27f, 0.16f, 0.07f, 1f);
-    [SerializeField] private Color titleTextColor = new Color(0.13f, 0.07f, 0.03f, 1f);
-    [SerializeField] private Color bodyTextColor = new Color(0.11f, 0.06f, 0.03f, 1f);
+    [SerializeField] private Color titleTextColor = new Color(0.08f, 0.04f, 0.015f, 1f);
+    [SerializeField] private Color bodyTextColor = new Color(0.06f, 0.035f, 0.015f, 1f);
     [SerializeField] private Color hudTextColor = new Color(0.96f, 0.93f, 0.86f, 0.98f);
     [SerializeField] private Vector3 boardOffset = new Vector3(0f, 0f, 0.02f);
-    [SerializeField] private float clueVisibleDistance = 2.8f;
+    [SerializeField] private float clueVisibleDistance = 4.1f;
     [SerializeField] private float hudVisibleDistance = 4.8f;
-    [SerializeField] private float facingDotThreshold = 0.45f;
+    [SerializeField] private float facingDotThreshold = 0.28f;
 
     private readonly List<string> playerInput = new List<string>();
     private readonly List<TextMesh> clueTitleMeshes = new List<TextMesh>();
@@ -299,8 +299,8 @@ public class PlanetManager : MonoBehaviour
         Image panel = CreatePanelImage(
             canvasGo.transform,
             "Panel",
-            new Vector2(430f, 128f),
-            new Color(0.05f, 0.035f, 0.02f, 0.44f),
+            new Vector2(390f, 104f),
+            new Color(0.05f, 0.035f, 0.02f, 0.34f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
             new Vector2(28f, 24f));
@@ -332,7 +332,7 @@ public class PlanetManager : MonoBehaviour
         statusText = CreateText(
             panel.transform,
             "Status",
-            new Vector2(370f, 40f),
+            new Vector2(350f, 32f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
             new Vector2(20f, 14f),
@@ -373,7 +373,7 @@ public class PlanetManager : MonoBehaviour
             activePreset.Title +
             "\n\n" +
             activePreset.Clue +
-            "\n\nTrust the atlas, not the sky.";
+            "\n\nPress the worlds in this order.";
 
         for (int i = 0; i < clueBodyMeshes.Count; i++)
         {
@@ -389,7 +389,7 @@ public class PlanetManager : MonoBehaviour
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.Append("Input: ");
+        builder.Append("Typed: ");
 
         for (int i = 0; i < activePreset.Sequence.Length; i++)
         {
@@ -457,7 +457,8 @@ public class PlanetManager : MonoBehaviour
         }
 
         float facingDot = Vector3.Dot(mainCamera.transform.forward, toBoard.normalized);
-        return facingDot >= facingDotThreshold;
+        return facingDot >= facingDotThreshold
+            && WorldTextMeshUtility.HasClearSight(mainCamera, clueBoard, targetPosition);
     }
 
     private bool ShouldShowHud()
@@ -574,10 +575,7 @@ public class PlanetManager : MonoBehaviour
             textMesh.color = new Color(0.95f, 0.91f, 0.82f, 0.98f);
             textMesh.text = button.buttonValue.ToUpperInvariant();
 
-            MeshRenderer renderer = labelGo.GetComponent<MeshRenderer>();
-            renderer.sharedMaterial = font.material;
-            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
+            WorldTextMeshUtility.ApplyReadableStyle(textMesh, textMesh.color);
 
             planetNameplates.Add(labelGo.transform);
         }

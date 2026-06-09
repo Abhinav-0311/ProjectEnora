@@ -1,4 +1,6 @@
+using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SigilAlignmentPuzzle : MonoBehaviour
 {
@@ -14,29 +16,36 @@ public class SigilAlignmentPuzzle : MonoBehaviour
 
     [Header("Room 3 Board")]
     [SerializeField] private string clueBoardObjectName = "Room3ClueBoard";
-    [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
+    [SerializeField] private Color boardTint = new Color(0.86f, 0.76f, 0.55f, 1f);
     [SerializeField] private Color accentColor = new Color(0.27f, 0.16f, 0.07f, 1f);
-    [SerializeField] private Color titleTextColor = new Color(0.13f, 0.07f, 0.03f, 1f);
-    [SerializeField] private Color bodyTextColor = new Color(0.11f, 0.06f, 0.03f, 1f);
+    [SerializeField] private Color titleTextColor = new Color(0.08f, 0.04f, 0.015f, 1f);
+    [SerializeField] private Color bodyTextColor = new Color(0.06f, 0.035f, 0.015f, 1f);
     [SerializeField] private Vector3 boardOffset = new Vector3(0f, 0f, 0.02f);
-    [SerializeField] private float clueVisibleDistance = 3f;
-    [SerializeField] private float facingDotThreshold = 0.45f;
+    [SerializeField] private float clueVisibleDistance = 4f;
+    [SerializeField] private float hudVisibleDistance = 5f;
+    [SerializeField] private float facingDotThreshold = 0.28f;
 
     private bool hasStarted;
     private bool isSolved;
     private Transform clueBoardTransform;
     private Renderer clueBoardRenderer;
     private GameObject clueRoot;
+    private GameObject hudRoot;
+    private Text orderText;
+    private Text statusText;
 
     private void Awake()
     {
         AutoBindPuzzleControllers();
         BuildClueBoard();
+        BuildHud();
+        RefreshHud();
     }
 
     private void Update()
     {
         RefreshClueVisibility();
+        RefreshHudVisibility();
     }
 
     public void UpdatePuzzleState(int puzzleIndex, string element)
@@ -58,6 +67,8 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         }
 
         currentSequence[puzzleIndex] = element;
+        SetStatus($"Stone {puzzleIndex + 1} now reads {element}.");
+        RefreshHud();
 
         // Check if all puzzles align with the correct sequence
         if (IsSequenceCorrect())
@@ -74,6 +85,7 @@ public class SigilAlignmentPuzzle : MonoBehaviour
             }
 
             RefreshClueVisibility();
+            RefreshHud();
             PuzzleSolved?.Invoke();
         }
     }
@@ -86,6 +98,7 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         }
 
         currentSequence[puzzleIndex] = element;
+        RefreshHud();
     }
 
     private bool IsSequenceCorrect()
@@ -166,14 +179,74 @@ public class SigilAlignmentPuzzle : MonoBehaviour
             new Vector3(0f, 0.05f, 0f),
             TextAnchor.UpperCenter,
             FontStyle.Bold,
-            "Each stone shows a name. The colors lie.\n\n" +
-            "First the realm is steadied.\n" +
-            "Then it is broken.\n" +
-            "Then the sky wakes.\n" +
-            "Then darkness seals it.\n\n" +
-            "Turn the stones until the four truths stand in that order.");
+            "Ignore the colors. Read the words.\n\n" +
+            "The correct order is:\n" +
+            "ORDER  ->  CHAOS  ->  DAY  ->  NIGHT\n\n" +
+            "Turn each stone until those four words face you from left to right.");
 
         RefreshClueVisibility();
+    }
+
+    private void BuildHud()
+    {
+        GameObject canvasGo = new GameObject("Room3SigilHud", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
+        canvasGo.transform.SetParent(transform, false);
+        hudRoot = canvasGo;
+
+        Canvas canvas = canvasGo.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 652;
+
+        CanvasScaler scaler = canvasGo.GetComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+
+        Image panel = CreatePanelImage(
+            canvasGo.transform,
+            "Panel",
+            new Vector2(430f, 104f),
+            new Color(0.05f, 0.035f, 0.02f, 0.34f),
+            new Vector2(0f, 0f),
+            new Vector2(0f, 0f),
+            new Vector2(28f, 24f));
+
+        CreateText(
+            panel.transform,
+            "Heading",
+            new Vector2(370f, 24f),
+            new Vector2(0f, 1f),
+            new Vector2(0f, 1f),
+            new Vector2(20f, -14f),
+            16,
+            new Color(0.96f, 0.93f, 0.86f, 0.98f),
+            TextAnchor.UpperLeft,
+            FontStyle.Bold).text = "TRUTH OF PERCEPTION";
+
+        orderText = CreateText(
+            panel.transform,
+            "Order",
+            new Vector2(370f, 30f),
+            new Vector2(0f, 1f),
+            new Vector2(0f, 1f),
+            new Vector2(20f, -48f),
+            16,
+            new Color(0.96f, 0.93f, 0.86f, 0.98f),
+            TextAnchor.MiddleLeft,
+            FontStyle.Bold);
+
+        statusText = CreateText(
+            panel.transform,
+            "Status",
+            new Vector2(370f, 32f),
+            new Vector2(0f, 0f),
+            new Vector2(0f, 0f),
+            new Vector2(20f, 14f),
+            13,
+            new Color(0.92f, 0.89f, 0.82f, 0.96f),
+            TextAnchor.LowerLeft,
+            FontStyle.Normal);
+
+        SetStatus("Turn the stones to match the board.");
     }
 
     private void AutoBindPuzzleControllers()
@@ -246,6 +319,42 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         }
     }
 
+    private void RefreshHud()
+    {
+        if (orderText == null)
+        {
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.Append("Order: ");
+        for (int i = 0; i < correctSequence.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(" -> ");
+            }
+
+            builder.Append(string.IsNullOrWhiteSpace(currentSequence[i]) ? "_" : currentSequence[i]);
+        }
+
+        orderText.text = builder.ToString();
+    }
+
+    private void RefreshHudVisibility()
+    {
+        if (hudRoot == null)
+        {
+            return;
+        }
+
+        bool showHud = ShouldShowHud();
+        if (hudRoot.activeSelf != showHud)
+        {
+            hudRoot.SetActive(showHud);
+        }
+    }
+
     private bool ShouldShowClueBoard()
     {
         if (isSolved || clueBoardTransform == null)
@@ -268,7 +377,37 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         }
 
         float facingDot = Vector3.Dot(mainCamera.transform.forward, toBoard.normalized);
-        return facingDot >= facingDotThreshold;
+        return facingDot >= facingDotThreshold
+            && WorldTextMeshUtility.HasClearSight(mainCamera, clueBoardTransform, targetPosition);
+    }
+
+    private bool ShouldShowHud()
+    {
+        if (isSolved || clueBoardTransform == null)
+        {
+            return false;
+        }
+
+        if (hasStarted)
+        {
+            return true;
+        }
+
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            return false;
+        }
+
+        return Vector3.Distance(mainCamera.transform.position, clueBoardTransform.position) <= hudVisibleDistance;
+    }
+
+    private void SetStatus(string message)
+    {
+        if (statusText != null)
+        {
+            statusText.text = message;
+        }
     }
 
     private static void CreateBoardText(
@@ -299,6 +438,69 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         textMesh.text = text;
 
         WorldTextMeshUtility.ApplyReadableStyle(textMesh, color);
+    }
+
+    private static Image CreatePanelImage(
+        Transform parent,
+        string name,
+        Vector2 size,
+        Color color,
+        Vector2 anchorMin,
+        Vector2 anchorMax,
+        Vector2 anchoredPosition)
+    {
+        GameObject imageGo = new GameObject(name, typeof(RectTransform), typeof(Image));
+        imageGo.transform.SetParent(parent, false);
+
+        RectTransform rect = imageGo.GetComponent<RectTransform>();
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.pivot = new Vector2((rect.anchorMin.x + rect.anchorMax.x) * 0.5f, (rect.anchorMin.y + rect.anchorMax.y) * 0.5f);
+        rect.anchoredPosition = anchoredPosition;
+        rect.sizeDelta = size;
+
+        Image image = imageGo.GetComponent<Image>();
+        image.color = color;
+        return image;
+    }
+
+    private static Text CreateText(
+        Transform parent,
+        string name,
+        Vector2 size,
+        Vector2 anchorMin,
+        Vector2 anchorMax,
+        Vector2 anchoredPosition,
+        int fontSize,
+        Color color,
+        TextAnchor alignment,
+        FontStyle fontStyle)
+    {
+        GameObject textGo = new GameObject(name, typeof(RectTransform), typeof(Text));
+        textGo.transform.SetParent(parent, false);
+
+        RectTransform rect = textGo.GetComponent<RectTransform>();
+        rect.anchorMin = anchorMin;
+        rect.anchorMax = anchorMax;
+        rect.pivot = new Vector2((rect.anchorMin.x + rect.anchorMax.x) * 0.5f, (rect.anchorMin.y + rect.anchorMax.y) * 0.5f);
+        rect.anchoredPosition = anchoredPosition;
+        rect.sizeDelta = size;
+
+        Text text = textGo.GetComponent<Text>();
+        text.font = GetBuiltinFont();
+        text.fontSize = fontSize;
+        text.fontStyle = fontStyle;
+        text.color = color;
+        text.alignment = alignment;
+        text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        text.text = string.Empty;
+
+        Shadow shadow = textGo.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.3f);
+        shadow.effectDistance = new Vector2(1.1f, -1.1f);
+
+        return text;
     }
 
     private static Font GetBuiltinFont()

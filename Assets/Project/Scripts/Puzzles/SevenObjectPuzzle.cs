@@ -115,12 +115,26 @@ public class SevenObjectPuzzle : MonoBehaviour
             if (currentStep == correctOrder.Length)
             {
                 OpenDoor();
+                ShowPuzzleHint("Judgment accepts the final relic.");
                 PuzzleSolved?.Invoke();
+            }
+            else
+            {
+                ShowPuzzleHint($"Relic {currentStep}/{correctOrder.Length} accepted.");
             }
         }
         else
         {
+            ShowPuzzleHint("The chamber rejects that order. Start again.");
             StartCoroutine(ResetAnimationsAndPuzzle());
+        }
+    }
+
+    public void ShowPuzzleHint(string message)
+    {
+        if (NarrativeHUD.Instance != null)
+        {
+            NarrativeHUD.Instance.ShowContextCard("Seven Sins", message, 2.2f);
         }
     }
 

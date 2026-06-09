@@ -117,10 +117,7 @@ public class PuzzleRaycastLogic : MonoBehaviour
             textMesh.color = new Color(0.98f, 0.93f, 0.84f, 1f);
             textMesh.text = face.name.ToUpperInvariant();
 
-            MeshRenderer renderer = labelGo.GetComponent<MeshRenderer>();
-            renderer.sharedMaterial = font.material;
-            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
+            WorldTextMeshUtility.ApplyReadableStyle(textMesh, textMesh.color);
         }
     }
 
