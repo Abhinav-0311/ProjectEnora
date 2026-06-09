@@ -80,6 +80,9 @@ public class KeypadManager : MonoBehaviour
     [SerializeField] private string clueBoardObjectName = "Room1ClueBoard";
     [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
     [SerializeField] private Color boardAccent = new Color(0.27f, 0.16f, 0.07f, 1f);
+    [SerializeField] private Color titleTextColor = new Color(0.13f, 0.07f, 0.03f, 1f);
+    [SerializeField] private Color bodyTextColor = new Color(0.11f, 0.06f, 0.03f, 1f);
+    [SerializeField] private Color hudTextColor = new Color(0.96f, 0.93f, 0.86f, 0.98f);
 
     [Header("Runtime Display Offsets")]
     [SerializeField] private Vector3 cluePanelOffset = new Vector3(0f, 0f, 0.018f);
@@ -260,7 +263,7 @@ public class KeypadManager : MonoBehaviour
         Image panel = CreatePanelImage(
             canvasGo.transform,
             "Panel",
-            new Vector2(310f, 92f),
+            new Vector2(360f, 128f),
             new Color(0.05f, 0.035f, 0.02f, 0.44f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
@@ -269,36 +272,36 @@ public class KeypadManager : MonoBehaviour
         CreateText(
             panel.transform,
             "Heading",
-            new Vector2(250f, 22f),
+            new Vector2(300f, 24f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(18f, -14f),
+            new Vector2(20f, -14f),
             16,
-            boardAccent,
+            hudTextColor,
             TextAnchor.UpperLeft,
             FontStyle.Bold).text = "FORGOTTEN MIND";
 
         codeText = CreateText(
             panel.transform,
             "Code",
-            new Vector2(250f, 28f),
+            new Vector2(300f, 30f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(18f, -42f),
-            20,
-            boardAccent,
+            new Vector2(20f, -48f),
+            18,
+            hudTextColor,
             TextAnchor.MiddleLeft,
             FontStyle.Bold);
 
         statusText = CreateText(
             panel.transform,
             "Status",
-            new Vector2(250f, 26f),
+            new Vector2(300f, 40f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
-            new Vector2(18f, 12f),
-            14,
-            new Color(0.95f, 0.92f, 0.85f, 0.96f),
+            new Vector2(20f, 14f),
+            13,
+            new Color(0.92f, 0.89f, 0.82f, 0.96f),
             TextAnchor.LowerLeft,
             FontStyle.Normal);
     }
@@ -350,22 +353,25 @@ public class KeypadManager : MonoBehaviour
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.Append("Seals ");
+        builder.Append("Input: ");
 
         for (int i = 0; i < activePreset.Sequence.Length; i++)
         {
+            if (i > 0)
+            {
+                builder.Append("  ");
+            }
+
             if (showSolvedState || i < playerInput.Count)
             {
-                builder.Append("[x]");
+                int value = showSolvedState && i >= playerInput.Count
+                    ? activePreset.Sequence[i]
+                    : playerInput[i];
+                builder.Append(value);
             }
             else
             {
-                builder.Append("[ ]");
-            }
-
-            if (i < activePreset.Sequence.Length - 1)
-            {
-                builder.Append(" ");
+                builder.Append("_");
             }
         }
 
@@ -433,7 +439,7 @@ public class KeypadManager : MonoBehaviour
     {
         Font titleFont = RuntimeTypography.GetDisplayFont();
         Font bodyFont = RuntimeTypography.GetBodyFont();
-        Vector3 localOffset = new Vector3(cluePanelOffset.x, cluePanelOffset.y, cluePanelOffset.z);
+        Vector3 localOffset = GetReadableBoardOffset(cluePanelOffset);
         Vector3 sideOffset = clueBoard.TransformDirection(localOffset);
         Quaternion sideRotation = Quaternion.LookRotation(-clueBoard.forward, clueBoard.up);
 
@@ -448,25 +454,34 @@ public class KeypadManager : MonoBehaviour
             root.transform,
             "Title",
             titleFont,
-            42,
-            0.013f,
-            boardAccent,
-            new Vector3(0f, 0.2f, 0f),
+            52,
+            0.0152f,
+            titleTextColor,
+            new Vector3(0f, 0.212f, 0f),
             TextAnchor.MiddleCenter,
-            TextAlignment.Center);
+            TextAlignment.Center,
+            FontStyle.Bold);
         clueTitleMeshes.Add(title);
 
         TextMesh body = CreateWorldTextMesh(
             root.transform,
             "Body",
             bodyFont,
-            25,
-            0.0095f,
-            new Color(0.2f, 0.12f, 0.06f, 1f),
-            new Vector3(0f, 0.038f, 0f),
+            31,
+            0.0114f,
+            bodyTextColor,
+            new Vector3(0f, 0.048f, 0f),
             TextAnchor.UpperCenter,
-            TextAlignment.Center);
+            TextAlignment.Center,
+            FontStyle.Bold);
         clueBodyMeshes.Add(body);
+    }
+
+    private static Vector3 GetReadableBoardOffset(Vector3 sourceOffset)
+    {
+        float zSign = sourceOffset.z >= 0f ? 1f : -1f;
+        float liftedZ = Mathf.Max(Mathf.Abs(sourceOffset.z), 0.034f);
+        return new Vector3(sourceOffset.x, sourceOffset.y, liftedZ * zSign);
     }
 
     private bool ShouldShowClueBoard()
@@ -535,7 +550,8 @@ public class KeypadManager : MonoBehaviour
         Color color,
         Vector3 localPosition,
         TextAnchor anchor,
-        TextAlignment alignment)
+        TextAlignment alignment,
+        FontStyle fontStyle)
     {
         GameObject textGo = new GameObject(name, typeof(TextMesh));
         textGo.transform.SetParent(parent, false);
@@ -548,14 +564,12 @@ public class KeypadManager : MonoBehaviour
         textMesh.characterSize = characterSize;
         textMesh.anchor = anchor;
         textMesh.alignment = alignment;
+        textMesh.fontStyle = fontStyle;
         textMesh.color = color;
-        textMesh.lineSpacing = 0.9f;
+        textMesh.lineSpacing = 0.88f;
         textMesh.text = string.Empty;
 
-        MeshRenderer renderer = textGo.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial = font.material;
-        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        renderer.receiveShadows = false;
+        WorldTextMeshUtility.ApplyReadableStyle(textMesh, color);
 
         return textMesh;
     }

@@ -5,32 +5,36 @@ public class CannonControlSwitcher : Interactable
     public event System.Action EnteredCannon;
     public event System.Action ExitedCannon;
 
+    public bool IsControllingCannon => controllingCannon;
+
     public GameObject playerRoot;         // Full player GameObject (body + camera)
     public GameObject cannonRoot;          // Full cannon GameObject (cannon + cannon camera)
 
     [Header("Fallback Visibility")]
     [SerializeField] private GameObject[] additionalPlayerObjectsToHide;
 
+    [Header("Exit Placement")]
+    [SerializeField] private Transform playerExitAnchor;
+    [SerializeField] private float fallbackExitBackwardOffset = 2.5f;
+    [SerializeField] private float fallbackExitSideOffset = 1.35f;
+    [SerializeField] private float fallbackExitHeightOffset = 0.15f;
+
     private bool controllingCannon = false;
     private Renderer[] cachedPlayerRenderers;
     private Collider[] cachedPlayerColliders;
+    private Vector3 lastPlayerPosition;
+    private Quaternion lastPlayerRotation = Quaternion.identity;
 
     private void Start()
     {
+        SetPromptAction("enter the cannon");
+        onInteract.RemoveListener(SwitchToCannon);
         onInteract.AddListener(SwitchToCannon);
 
-        if (playerRoot == null)
-        {
-            GameObject taggedPlayer = GameObject.FindGameObjectWithTag("Player");
-            if (taggedPlayer != null)
-            {
-                playerRoot = taggedPlayer;
-            }
-        }
-
+        playerRoot = PlayerRuntimeUtility.ResolvePlayerRoot(playerRoot);
         CachePlayerPresentation();
 
-        if (cannonRoot != null)
+        if (ShouldToggleCannonRoot())
         {
             cannonRoot.SetActive(false); // Start with cannon hidden
         }
@@ -51,44 +55,62 @@ public class CannonControlSwitcher : Interactable
 
     void SwitchToCannon()
     {
-        if (controllingCannon) return; // Already controlling cannon
-
-        Debug.Log("Switched to Cannon Control!");
-
-        SetPlayerPresentationVisible(false);
-
-        if (playerRoot != null)
+        if (controllingCannon)
         {
-            playerRoot.SetActive(false); // Disable player completely (player + camera)
+            return;
         }
 
-        if (cannonRoot != null)
+        playerRoot = PlayerRuntimeUtility.ResolvePlayerRoot(playerRoot);
+        if (playerRoot == null)
+        {
+            return;
+        }
+
+        CachePlayerPresentation();
+        lastPlayerPosition = playerRoot.transform.position;
+        lastPlayerRotation = playerRoot.transform.rotation;
+
+        PlayerRuntimeUtility.PrepareForExternalControl(playerRoot);
+
+        SetPlayerPresentationVisible(false);
+        playerRoot.SetActive(false);
+
+        if (ShouldToggleCannonRoot())
         {
             cannonRoot.SetActive(true); // Enable cannon (cannon model + cannon camera)
         }
 
         controllingCannon = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         EnteredCannon?.Invoke();
     }
 
     void SwitchBackToPlayer()
     {
-        Debug.Log("Switched back to Player Control!");
-
-        if (playerRoot != null)
+        if (!controllingCannon)
         {
-            playerRoot.SetActive(true); // Re-enable player (player + camera)
+            return;
         }
 
-        SetPlayerPresentationVisible(true);
-
-        if (cannonRoot != null)
+        playerRoot = PlayerRuntimeUtility.ResolvePlayerRoot(playerRoot);
+        if (playerRoot != null)
         {
-            cannonRoot.SetActive(false); // Disable cannon entirely
+            playerRoot.SetActive(true);
+            CachePlayerPresentation();
+            ResolveExitPose(out Vector3 exitPosition, out Quaternion exitRotation);
+            PlayerRuntimeUtility.TeleportPlayer(playerRoot, exitPosition, exitRotation);
+            SetPlayerPresentationVisible(true);
+            PlayerRuntimeUtility.RestoreAfterExternalControl(playerRoot);
         }
 
         controllingCannon = false;
         ExitedCannon?.Invoke();
+
+        if (ShouldToggleCannonRoot())
+        {
+            cannonRoot.SetActive(false);
+        }
     }
 
     private void CachePlayerPresentation()
@@ -132,5 +154,38 @@ public class CannonControlSwitcher : Interactable
                 additionalPlayerObjectsToHide[i].SetActive(visible);
             }
         }
+    }
+
+    private void ResolveExitPose(out Vector3 position, out Quaternion rotation)
+    {
+        if (playerExitAnchor != null)
+        {
+            position = playerExitAnchor.position;
+            rotation = playerExitAnchor.rotation;
+            return;
+        }
+
+        Transform referenceTransform = cannonRoot != null ? cannonRoot.transform : transform;
+        if (referenceTransform != null)
+        {
+            Vector3 backward = -referenceTransform.forward * fallbackExitBackwardOffset;
+            Vector3 side = referenceTransform.right * fallbackExitSideOffset;
+            position = referenceTransform.position + backward + side + Vector3.up * fallbackExitHeightOffset;
+
+            Vector3 lookDirection = referenceTransform.position - position;
+            lookDirection.y = 0f;
+            rotation = lookDirection.sqrMagnitude > 0.001f
+                ? Quaternion.LookRotation(lookDirection.normalized, Vector3.up)
+                : referenceTransform.rotation;
+            return;
+        }
+
+        position = lastPlayerPosition;
+        rotation = lastPlayerRotation;
+    }
+
+    private bool ShouldToggleCannonRoot()
+    {
+        return cannonRoot != null && cannonRoot != gameObject;
     }
 }

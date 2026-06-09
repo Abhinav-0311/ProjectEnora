@@ -10,6 +10,7 @@ public class Candle : Interactable
 
     void Start()
     {
+        SetPromptAction("light the candle");
         puzzleManager = FindFirstObjectByType<CandlePuzzle>();
 
         // DEBUG: Check all child components
@@ -33,6 +34,7 @@ public class Candle : Interactable
         }
 
         // Assign interaction event
+        onInteract.RemoveListener(LightCandle);
         onInteract.AddListener(LightCandle);
     }
 
@@ -44,14 +46,16 @@ public class Candle : Interactable
             if (candleLight != null)
             {
                 candleLight.enabled = true; // Enable the light
-                Debug.Log("Candle " + candleIndex + " lit up!");
             }
             else
             {
                 Debug.LogError("Candle Light is still missing for " + gameObject.name);
             }
 
-            puzzleManager.CheckCandleOrder(candleIndex);
+            if (puzzleManager != null)
+            {
+                puzzleManager.CheckCandleOrder(candleIndex);
+            }
         }
     }
 

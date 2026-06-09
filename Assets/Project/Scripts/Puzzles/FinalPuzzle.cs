@@ -13,8 +13,10 @@ public class FinalPuzzle : MonoBehaviour
 
     [Header("Room 4 Board")]
     [SerializeField] private string clueBoardObjectName = "Room4ClueBoard";
-    [SerializeField] private Color boardTint = new Color(0.11f, 0.09f, 0.07f, 1f);
-    [SerializeField] private Color accentColor = new Color(0.82f, 0.74f, 0.58f, 1f);
+    [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
+    [SerializeField] private Color accentColor = new Color(0.27f, 0.16f, 0.07f, 1f);
+    [SerializeField] private Color titleTextColor = new Color(0.13f, 0.07f, 0.03f, 1f);
+    [SerializeField] private Color bodyTextColor = new Color(0.11f, 0.06f, 0.03f, 1f);
     [SerializeField] private Vector3 boardOffset = new Vector3(0f, 0f, 0.02f);
     [SerializeField] private float clueVisibleDistance = 3f;
     [SerializeField] private float facingDotThreshold = 0.45f;
@@ -91,7 +93,7 @@ public class FinalPuzzle : MonoBehaviour
 
         GameObject root = new GameObject("Room4ClueFront");
         root.transform.SetParent(clueBoard.transform.parent, true);
-        root.transform.position = clueBoard.transform.position + clueBoard.transform.TransformDirection(boardOffset);
+        root.transform.position = clueBoard.transform.position + clueBoard.transform.TransformDirection(GetReadableBoardOffset(boardOffset));
         root.transform.rotation = Quaternion.LookRotation(-clueBoard.transform.forward, clueBoard.transform.up);
         root.transform.localScale = Vector3.one;
         clueRoot = root;
@@ -99,24 +101,26 @@ public class FinalPuzzle : MonoBehaviour
         CreateBoardText(
             root.transform,
             "Title",
-            40,
-            0.0135f,
-            accentColor,
-            new Vector3(0f, 0.19f, 0f),
+            50,
+            0.015f,
+            titleTextColor,
+            new Vector3(0f, 0.208f, 0f),
             TextAnchor.MiddleCenter,
+            FontStyle.Bold,
             "THE LOOP");
 
         CreateBoardText(
             root.transform,
             "Body",
-            26,
-            0.0105f,
-            new Color(0.96f, 0.93f, 0.86f, 1f),
-            new Vector3(0f, 0.04f, 0f),
+            31,
+            0.0114f,
+            bodyTextColor,
+            new Vector3(0f, 0.048f, 0f),
             TextAnchor.UpperCenter,
-            "The dungeon closes only when you return.\n\n" +
-            "Walk back to the place where the trial began.\n\n" +
-            "Forward is no longer the way out.");
+            FontStyle.Bold,
+            "The dungeon breaks only when you return.\n\n" +
+            "Walk back to the place where the first trial began.\n\n" +
+            "The way out is hidden inside the beginning.");
 
         RefreshClueVisibility();
     }
@@ -133,6 +137,13 @@ public class FinalPuzzle : MonoBehaviour
         {
             clueRoot.SetActive(showClue);
         }
+    }
+
+    private static Vector3 GetReadableBoardOffset(Vector3 sourceOffset)
+    {
+        float zSign = sourceOffset.z >= 0f ? 1f : -1f;
+        float liftedZ = Mathf.Max(Mathf.Abs(sourceOffset.z), 0.034f);
+        return new Vector3(sourceOffset.x, sourceOffset.y, liftedZ * zSign);
     }
 
     private bool ShouldShowClueBoard()
@@ -168,6 +179,7 @@ public class FinalPuzzle : MonoBehaviour
         Color color,
         Vector3 localPosition,
         TextAnchor anchor,
+        FontStyle fontStyle,
         string text)
     {
         GameObject textGo = new GameObject(name, typeof(TextMesh));
@@ -181,14 +193,12 @@ public class FinalPuzzle : MonoBehaviour
         textMesh.characterSize = characterSize;
         textMesh.anchor = anchor;
         textMesh.alignment = TextAlignment.Center;
+        textMesh.fontStyle = fontStyle;
         textMesh.color = color;
-        textMesh.lineSpacing = 0.9f;
+        textMesh.lineSpacing = 0.88f;
         textMesh.text = text;
 
-        MeshRenderer renderer = textGo.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial = textMesh.font.material;
-        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        renderer.receiveShadows = false;
+        WorldTextMeshUtility.ApplyReadableStyle(textMesh, color);
     }
 
     private static Font GetBuiltinFont()
@@ -198,16 +208,7 @@ public class FinalPuzzle : MonoBehaviour
             return builtinFont;
         }
 
-        builtinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        if (builtinFont == null)
-        {
-            builtinFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        }
-
-        if (builtinFont == null)
-        {
-            builtinFont = Font.CreateDynamicFontFromOSFont("Arial", 24);
-        }
+        builtinFont = RuntimeTypography.GetBodyFont();
 
         return builtinFont;
     }

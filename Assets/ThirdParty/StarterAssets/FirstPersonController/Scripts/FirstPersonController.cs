@@ -26,12 +26,18 @@ namespace StarterAssets
 		public float JumpHeight = 1.2f;
 		[Tooltip("The character uses its own gravity value. The engine default is -9.81f")]
 		public float Gravity = -15.0f;
+		[Tooltip("Keeps the controller grounded more firmly on slopes and steps")]
+		public float GroundedSnapVelocity = -4.0f;
 
 		[Space(10)]
 		[Tooltip("Time required to pass before being able to jump again. Set to 0f to instantly jump again")]
 		public float JumpTimeout = 0.1f;
 		[Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
 		public float FallTimeout = 0.15f;
+		[Tooltip("Allows jump input shortly before or after a grounded transition")]
+		public float JumpInputBuffer = 0.12f;
+		[Tooltip("Allows jumping briefly after stepping off a ledge")]
+		public float CoyoteTime = 0.12f;
 
 		[Header("Player Grounded")]
 		[Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
@@ -50,6 +56,8 @@ namespace StarterAssets
 		public float TopClamp = 90.0f;
 		[Tooltip("How far in degrees can you move the camera down")]
 		public float BottomClamp = -90.0f;
+		[Tooltip("Reduces first-person wall clipping by tightening the near clip plane at runtime")]
+		public float WallSafeNearClipPlane = 0.03f;
 
 		// cinemachine
 		private float _cinemachineTargetPitch;
@@ -63,6 +71,8 @@ namespace StarterAssets
 		// timeout deltatime
 		private float _jumpTimeoutDelta;
 		private float _fallTimeoutDelta;
+		private float _jumpInputBufferDelta;
+		private float _coyoteTimeDelta;
 
 	
 #if ENABLE_INPUT_SYSTEM
@@ -71,8 +81,10 @@ namespace StarterAssets
 		private CharacterController _controller;
 		private StarterAssetsInputs _input;
 		private GameObject _mainCamera;
+		private Camera _mainCameraComponent;
 
 		private const float _threshold = 0.01f;
+		private bool _jumpPressedLastFrame;
 
 		private bool IsCurrentDeviceMouse
 		{
@@ -108,12 +120,24 @@ namespace StarterAssets
 			// reset our timeouts on start
 			_jumpTimeoutDelta = JumpTimeout;
 			_fallTimeoutDelta = FallTimeout;
+			_jumpInputBufferDelta = 0f;
+			_coyoteTimeDelta = 0f;
+
+			if (_mainCamera != null)
+			{
+				_mainCameraComponent = _mainCamera.GetComponent<Camera>();
+				if (_mainCameraComponent != null)
+				{
+					_mainCameraComponent.nearClipPlane = Mathf.Min(_mainCameraComponent.nearClipPlane, WallSafeNearClipPlane);
+				}
+			}
 		}
 
 		private void Update()
 		{
-			JumpAndGravity();
 			GroundedCheck();
+			UpdateJumpBuffer();
+			JumpAndGravity();
 			Move();
 		}
 
@@ -131,6 +155,11 @@ namespace StarterAssets
 
 		private void CameraRotation()
 		{
+			if (GameplayOverlayState.IsOverlayActive || CinemachineCameraTarget == null)
+			{
+				return;
+			}
+
 			// if there is an input
 			if (_input.look.sqrMagnitude >= _threshold)
 			{
@@ -200,22 +229,25 @@ namespace StarterAssets
 
 		private void JumpAndGravity()
 		{
+			bool canUseBufferedJump = _jumpInputBufferDelta > 0.0f && _jumpTimeoutDelta <= 0.0f;
+
 			if (Grounded)
 			{
+				_coyoteTimeDelta = CoyoteTime;
+
 				// reset the fall timeout timer
 				_fallTimeoutDelta = FallTimeout;
 
 				// stop our velocity dropping infinitely when grounded
 				if (_verticalVelocity < 0.0f)
 				{
-					_verticalVelocity = -2f;
+					_verticalVelocity = GroundedSnapVelocity;
 				}
 
 				// Jump
-				if (_input.jump && _jumpTimeoutDelta <= 0.0f)
+				if (canUseBufferedJump)
 				{
-					// the square root of H * -2 * G = how much velocity needed to reach desired height
-					_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+					PerformJump();
 				}
 
 				// jump timeout
@@ -226,6 +258,13 @@ namespace StarterAssets
 			}
 			else
 			{
+				_coyoteTimeDelta = Mathf.Max(_coyoteTimeDelta - Time.deltaTime, 0.0f);
+
+				if (canUseBufferedJump && _coyoteTimeDelta > 0.0f)
+				{
+					PerformJump();
+				}
+
 				// reset the jump timeout timer
 				_jumpTimeoutDelta = JumpTimeout;
 
@@ -244,6 +283,28 @@ namespace StarterAssets
 			{
 				_verticalVelocity += Gravity * Time.deltaTime;
 			}
+		}
+
+		private void UpdateJumpBuffer()
+		{
+			if (_input.jump && !_jumpPressedLastFrame)
+			{
+				_jumpInputBufferDelta = JumpInputBuffer;
+			}
+			else if (_jumpInputBufferDelta > 0.0f)
+			{
+				_jumpInputBufferDelta -= Time.deltaTime;
+			}
+
+			_jumpPressedLastFrame = _input.jump;
+		}
+
+		private void PerformJump()
+		{
+			_verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
+			_jumpInputBufferDelta = 0.0f;
+			_coyoteTimeDelta = 0.0f;
+			_jumpTimeoutDelta = JumpTimeout;
 		}
 
 		private static float ClampAngle(float lfAngle, float lfMin, float lfMax)

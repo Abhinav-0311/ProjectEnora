@@ -11,6 +11,10 @@ public class DestroyAndFadeGameOver : MonoBehaviour
     public CanvasGroup gameOverCanvas; // Assign the CanvasGroup of your Game Over panel
     public float fadeDuration = 2f;    // Duration for fade-in
 
+    [Header("Debug")]
+    [SerializeField] private bool enableDebugTrigger = false;
+    [SerializeField] private KeyCode debugTriggerKey = KeyCode.LeftAlt;
+
     private bool hasTriggered = false;
 
     private void Awake()
@@ -20,11 +24,21 @@ public class DestroyAndFadeGameOver : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.LeftAlt) && !hasTriggered)
+        if (enableDebugTrigger && Input.GetKeyDown(debugTriggerKey) && !hasTriggered)
         {
-            hasTriggered = true;
-            StartCoroutine(HandleGameOver());
+            TriggerGameOver();
         }
+    }
+
+    public void TriggerGameOver()
+    {
+        if (hasTriggered)
+        {
+            return;
+        }
+
+        hasTriggered = true;
+        StartCoroutine(HandleGameOver());
     }
 
     IEnumerator HandleGameOver()

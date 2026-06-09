@@ -20,6 +20,12 @@ public class SoundLibrary : MonoBehaviour
                 return soundEffect.clips[Random.Range(0, soundEffect.clips.Length)];
             }
         }
+
+        if (name == FeedbackSoundNames.Confirm)
+        {
+            return GetClipFromName(FeedbackSoundNames.Click);
+        }
+
         return null;
     }
 }

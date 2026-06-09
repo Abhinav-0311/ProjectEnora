@@ -101,8 +101,6 @@ public class NarrativeSceneIntro : MonoBehaviour
             {
                 if (NarrativeHUD.Instance != null)
                     NarrativeHUD.Instance.ShowSubtitle(beat.Subtitle, beat.SubtitleDuration);
-                else
-                    Debug.Log("[Narrative Intro] " + beat.Subtitle);
             }
 
             yield return new WaitForSecondsRealtime(beat.SubtitleDuration + 0.8f);

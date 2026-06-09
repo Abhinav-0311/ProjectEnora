@@ -16,8 +16,7 @@ public class Projectile : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Demon"))
         {
-            Debug.Log("Hit Enemy!");
-               
+            return;
         }
     }
 }

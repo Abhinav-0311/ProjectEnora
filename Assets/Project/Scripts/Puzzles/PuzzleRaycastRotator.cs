@@ -19,9 +19,7 @@ public class PuzzleRaycastRotator : MonoBehaviour
 
     private void Update()
     {
-        if (!Input.GetMouseButtonDown(0)
-            && !Input.GetKeyDown(KeyCode.E)
-            && !Input.GetKeyDown(KeyCode.JoystickButton2))
+        if (!InteractionInput.IsInteractPressedThisFrame())
         {
             return;
         }
@@ -33,8 +31,8 @@ public class PuzzleRaycastRotator : MonoBehaviour
         }
 
         Transform targetPuzzle = puzzle != null ? puzzle : transform;
-        Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        if (!Physics.Raycast(ray, out RaycastHit hit, interactionDistance))
+        Ray ray = InteractionInput.GetCenteredViewRay(mainCamera);
+        if (!Physics.Raycast(ray, out RaycastHit hit, interactionDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
             return;
         }
@@ -50,8 +48,12 @@ public class PuzzleRaycastRotator : MonoBehaviour
         Transform targetPuzzle = puzzle != null ? puzzle : transform;
 
         targetPuzzle.Rotate(0f, 90f, 0f);
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySound2D(FeedbackSoundNames.Click, 0.76f, 1f);
+        }
+
         SyncCurrentStateWithManager(true);
-        Debug.Log($"{targetPuzzle.name}: {Elements[currentIndex]} aligned");
     }
 
     private void SyncCurrentStateWithManager(bool isInteraction)

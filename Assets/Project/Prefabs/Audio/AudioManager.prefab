@@ -328,6 +328,9 @@ MonoBehaviour:
   - groupID: Click
     clips:
     - {fileID: 8300000, guid: c327e51db1a8ce84e9927fa2973f43dc, type: 3}
+  - groupID: Confirm
+    clips:
+    - {fileID: 8300000, guid: 5af97a1d37ecd30448a00372d6f112d2, type: 3}
 --- !u!114 &4816585730159072857
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -53,8 +53,6 @@ public class SevenObjectPuzzle : MonoBehaviour
 
     public void ResetPuzzleManually()
     {
-        Debug.Log("Manual Reset Called!");
-
         for (int i = 0; i < interactableObjects.Length; i++)
         {
             loweredObjects[i] = false;
@@ -96,8 +94,6 @@ public class SevenObjectPuzzle : MonoBehaviour
             return;
         }
 
-        Debug.Log("Interacted with object: " + obj.name + " at step " + currentStep);
-
         if (loweredObjects[index])
         {
             return;
@@ -124,7 +120,6 @@ public class SevenObjectPuzzle : MonoBehaviour
         }
         else
         {
-            Debug.Log("Wrong order! Resetting puzzle.");
             StartCoroutine(ResetAnimationsAndPuzzle());
         }
     }
@@ -154,12 +149,10 @@ public class SevenObjectPuzzle : MonoBehaviour
         if (doorAnimator != null)
         {
             doorAnimator.SetTrigger(doorOpenTrigger);
-            Debug.Log("Door opened with animation!");
         }
         else if (door != null)
         {
             door.SetActive(false);
-            Debug.Log("Door deactivated!");
         }
     }
 }

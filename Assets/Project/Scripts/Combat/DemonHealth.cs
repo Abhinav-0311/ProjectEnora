@@ -24,7 +24,6 @@ public class DemonHealth : MonoBehaviour
         if (collision.gameObject.CompareTag("Fireball")) // Fireball should have this tag
         {
             currentHits++;
-            Debug.Log("Demon hit! Total hits: " + currentHits);
             HitTaken?.Invoke(currentHits);
 
             if (currentHits >= hitsToDie)

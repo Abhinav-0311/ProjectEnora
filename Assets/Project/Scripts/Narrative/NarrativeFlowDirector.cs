@@ -659,125 +659,14 @@ public class NarrativeFlowDirector : MonoBehaviour
 
         GameplayOverlayState.PrepareForSceneTransition();
 
-        Transform player = FindPlayerTransform();
-        if (player == null)
+        GameObject playerRoot = PlayerRuntimeUtility.ResolvePlayerRoot();
+        if (playerRoot == null)
         {
             yield break;
         }
 
-        FirstPersonMovement movement = player.GetComponent<FirstPersonMovement>();
-        if (movement != null)
-        {
-            movement.enabled = true;
-        }
-
-        Jump jump = player.GetComponent<Jump>();
-        if (jump != null)
-        {
-            jump.enabled = true;
-        }
-
-        Interactor interactor = player.GetComponent<Interactor>();
-        if (interactor != null)
-        {
-            interactor.enabled = true;
-        }
-
-        FirstPersonLook look = player.GetComponentInChildren<FirstPersonLook>(true);
-        if (look != null)
-        {
-            look.enabled = true;
-        }
-
-        Rigidbody rigidbody = player.GetComponent<Rigidbody>();
-        if (rigidbody != null)
-        {
-            rigidbody.linearVelocity = Vector3.zero;
-            rigidbody.angularVelocity = Vector3.zero;
-            rigidbody.WakeUp();
-        }
-
-        TryResolvePlayerOverlap(player);
-    }
-
-    private static Transform FindPlayerTransform()
-    {
-        GameObject taggedPlayer = GameObject.FindGameObjectWithTag("Player");
-        if (taggedPlayer != null)
-        {
-            return taggedPlayer.transform;
-        }
-
-        FirstPersonMovement movement = FindFirstObjectByType<FirstPersonMovement>();
-        return movement != null ? movement.transform : null;
-    }
-
-    private static void TryResolvePlayerOverlap(Transform player)
-    {
-        if (player == null)
-        {
-            return;
-        }
-
-        CapsuleCollider capsule = player.GetComponent<CapsuleCollider>();
-        if (capsule == null)
-        {
-            return;
-        }
-
-        Vector3[] offsets =
-        {
-            Vector3.zero,
-            Vector3.up * 0.2f,
-            Vector3.up * 0.6f,
-            Vector3.up * 1.1f,
-            player.forward * 0.45f + Vector3.up * 0.6f,
-            -player.forward * 0.45f + Vector3.up * 0.6f,
-            player.right * 0.45f + Vector3.up * 0.6f,
-            -player.right * 0.45f + Vector3.up * 0.6f
-        };
-
-        Vector3 originalPosition = player.position;
-        Quaternion originalRotation = player.rotation;
-
-        for (int i = 0; i < offsets.Length; i++)
-        {
-            Vector3 candidatePosition = originalPosition + offsets[i];
-            if (IsCapsulePlacementClear(player, capsule, candidatePosition, originalRotation))
-            {
-                player.position = candidatePosition;
-                return;
-            }
-        }
-    }
-
-    private static bool IsCapsulePlacementClear(
-        Transform player,
-        CapsuleCollider capsule,
-        Vector3 candidatePosition,
-        Quaternion candidateRotation)
-    {
-        float radius = capsule.radius * Mathf.Max(player.lossyScale.x, player.lossyScale.z) * 0.95f;
-        float scaledHeight = Mathf.Max(capsule.height * player.lossyScale.y, radius * 2f + 0.05f);
-        float halfHeight = Mathf.Max(0f, (scaledHeight * 0.5f) - radius);
-
-        Vector3 center = candidatePosition + candidateRotation * Vector3.Scale(capsule.center, player.lossyScale);
-        Vector3 top = center + Vector3.up * halfHeight;
-        Vector3 bottom = center - Vector3.up * halfHeight;
-
-        Collider[] overlaps = Physics.OverlapCapsule(top, bottom, radius, ~0, QueryTriggerInteraction.Ignore);
-        for (int i = 0; i < overlaps.Length; i++)
-        {
-            Collider overlap = overlaps[i];
-            if (overlap == null || overlap.transform.IsChildOf(player))
-            {
-                continue;
-            }
-
-            return false;
-        }
-
-        return true;
+        PlayerRuntimeUtility.RestoreAfterExternalControl(playerRoot);
+        PlayerRuntimeUtility.ResolvePlayerOverlap(playerRoot);
     }
 
     private static void ShowContextCard(string title, string body)

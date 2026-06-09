@@ -24,19 +24,47 @@ public class CannonController : MonoBehaviour
     public float timeStep = 0.1f;
     public LayerMask collisionMask;
 
+    [Header("Control State")]
+    [SerializeField] private CannonControlSwitcher controlSwitcher;
+    [SerializeField] private bool requireCannonControl = true;
+
     private LineRenderer lineRenderer;
     private float nextShootTime = 0f;
 
     private float currentAimAngle = 45f;
 
+    private void Awake()
+    {
+        if (controlSwitcher == null)
+        {
+            controlSwitcher = GetComponent<CannonControlSwitcher>();
+        }
+    }
+
     void Start()
     {
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.positionCount = trajectoryPoints;
+        ApplyAimRotation();
+        SetTrajectoryVisible(CanAcceptInput());
+    }
+
+    private void OnEnable()
+    {
+        nextShootTime = 0f;
+        ApplyAimRotation();
+        SetTrajectoryVisible(CanAcceptInput());
     }
 
     void Update()
     {
+        if (!CanAcceptInput())
+        {
+            SetTrajectoryVisible(false);
+            return;
+        }
+
+        SetTrajectoryVisible(true);
         HandleMovement();
         HandleAiming();
         DrawTrajectory();
@@ -52,6 +80,11 @@ public class CannonController : MonoBehaviour
 
     void HandleAiming()
     {
+        if (firePoint == null)
+        {
+            return;
+        }
+
         float aimInput = Input.GetAxis("Vertical"); // Up/Down Arrows
 
         if (aimInput != 0f)
@@ -59,7 +92,7 @@ public class CannonController : MonoBehaviour
             currentAimAngle += aimInput * aimSpeed * Time.deltaTime;
             currentAimAngle = Mathf.Clamp(currentAimAngle, minAimAngle, maxAimAngle);
 
-            firePoint.localRotation = Quaternion.Euler(-currentAimAngle, 0f, 0f); // Aim up/down
+            ApplyAimRotation();
         }
     }
 
@@ -78,7 +111,7 @@ public class CannonController : MonoBehaviour
 
     void Shoot()
 {
-    if (projectilePrefab != null)
+    if (projectilePrefab != null && firePoint != null)
     {
         GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
@@ -95,6 +128,11 @@ public class CannonController : MonoBehaviour
 
     void DrawTrajectory()
     {
+        if (firePoint == null || lineRenderer == null)
+        {
+            return;
+        }
+
         Vector3 startPosition = firePoint.position;
         Vector3 startVelocity = firePoint.forward * launchForce;
 
@@ -123,5 +161,26 @@ public class CannonController : MonoBehaviour
     Vector3 CalculatePointAtTime(Vector3 startPos, Vector3 startVelocity, float time)
     {
         return startPos + startVelocity * time + 0.5f * Physics.gravity * time * time;
+    }
+
+    private bool CanAcceptInput()
+    {
+        return !requireCannonControl || controlSwitcher == null || controlSwitcher.IsControllingCannon;
+    }
+
+    private void ApplyAimRotation()
+    {
+        if (firePoint != null)
+        {
+            firePoint.localRotation = Quaternion.Euler(-currentAimAngle, 0f, 0f);
+        }
+    }
+
+    private void SetTrajectoryVisible(bool visible)
+    {
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = visible;
+        }
     }
 }

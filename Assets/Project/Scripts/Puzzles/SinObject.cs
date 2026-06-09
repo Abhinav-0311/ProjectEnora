@@ -6,7 +6,9 @@ public class SinObject : Interactable
 
     void Start()
     {
+        SetPromptAction("offer this relic");
         puzzleManager = FindFirstObjectByType<SevenObjectPuzzle>();
+        onInteract.RemoveListener(TriggerPuzzle);
         onInteract.AddListener(TriggerPuzzle);
     }
 
@@ -14,7 +16,6 @@ public class SinObject : Interactable
     {
         if (puzzleManager != null)
         {
-            Debug.Log("SinObject triggered: " + gameObject.name);
             puzzleManager.InteractWithObject(gameObject);
         }
     }

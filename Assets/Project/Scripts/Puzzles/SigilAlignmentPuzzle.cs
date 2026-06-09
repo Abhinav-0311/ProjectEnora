@@ -16,6 +16,8 @@ public class SigilAlignmentPuzzle : MonoBehaviour
     [SerializeField] private string clueBoardObjectName = "Room3ClueBoard";
     [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
     [SerializeField] private Color accentColor = new Color(0.27f, 0.16f, 0.07f, 1f);
+    [SerializeField] private Color titleTextColor = new Color(0.13f, 0.07f, 0.03f, 1f);
+    [SerializeField] private Color bodyTextColor = new Color(0.11f, 0.06f, 0.03f, 1f);
     [SerializeField] private Vector3 boardOffset = new Vector3(0f, 0f, 0.02f);
     [SerializeField] private float clueVisibleDistance = 3f;
     [SerializeField] private float facingDotThreshold = 0.45f;
@@ -61,7 +63,6 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         if (IsSequenceCorrect())
         {
             isSolved = true;
-            Debug.Log("All puzzles are correct! Playing animation...");
             if (winAnimator != null)
             {
                 winAnimator.SetTrigger("Open"); // Play the animation
@@ -70,7 +71,6 @@ public class SigilAlignmentPuzzle : MonoBehaviour
             if (LastPuzzle != null)
             {
                 LastPuzzle.SetActive(true);
-                Debug.Log("Last Puzzle Active");
             }
 
             RefreshClueVisibility();
@@ -141,7 +141,7 @@ public class SigilAlignmentPuzzle : MonoBehaviour
 
         GameObject root = new GameObject("Room3ClueFront");
         root.transform.SetParent(clueBoard.transform.parent, true);
-        root.transform.position = clueBoard.transform.position + clueBoard.transform.TransformDirection(boardOffset);
+        root.transform.position = clueBoard.transform.position + clueBoard.transform.TransformDirection(GetReadableBoardOffset(boardOffset));
         root.transform.rotation = Quaternion.LookRotation(-clueBoard.transform.forward, clueBoard.transform.up);
         root.transform.localScale = Vector3.one;
         clueRoot = root;
@@ -149,21 +149,23 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         CreateBoardText(
             root.transform,
             "Title",
-            40,
-            0.0135f,
-            accentColor,
-            new Vector3(0f, 0.19f, 0f),
+            50,
+            0.0154f,
+            titleTextColor,
+            new Vector3(0f, 0.208f, 0f),
             TextAnchor.MiddleCenter,
+            FontStyle.Bold,
             "TRUTH OF PERCEPTION");
 
         CreateBoardText(
             root.transform,
             "Body",
-            26,
-            0.0105f,
-            new Color(0.2f, 0.12f, 0.06f, 1f),
-            new Vector3(0f, 0.04f, 0f),
+            31,
+            0.0116f,
+            bodyTextColor,
+            new Vector3(0f, 0.05f, 0f),
             TextAnchor.UpperCenter,
+            FontStyle.Bold,
             "Each stone shows a name. The colors lie.\n\n" +
             "First the realm is steadied.\n" +
             "Then it is broken.\n" +
@@ -223,6 +225,13 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         return left.transform.position.x.CompareTo(right.transform.position.x);
     }
 
+    private static Vector3 GetReadableBoardOffset(Vector3 sourceOffset)
+    {
+        float zSign = sourceOffset.z >= 0f ? 1f : -1f;
+        float liftedZ = Mathf.Max(Mathf.Abs(sourceOffset.z), 0.034f);
+        return new Vector3(sourceOffset.x, sourceOffset.y, liftedZ * zSign);
+    }
+
     private void RefreshClueVisibility()
     {
         if (clueRoot == null)
@@ -270,6 +279,7 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         Color color,
         Vector3 localPosition,
         TextAnchor anchor,
+        FontStyle fontStyle,
         string text)
     {
         GameObject textGo = new GameObject(name, typeof(TextMesh));
@@ -283,14 +293,12 @@ public class SigilAlignmentPuzzle : MonoBehaviour
         textMesh.characterSize = characterSize;
         textMesh.anchor = anchor;
         textMesh.alignment = TextAlignment.Center;
+        textMesh.fontStyle = fontStyle;
         textMesh.color = color;
-        textMesh.lineSpacing = 0.9f;
+        textMesh.lineSpacing = 0.88f;
         textMesh.text = text;
 
-        MeshRenderer renderer = textGo.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial = textMesh.font.material;
-        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        renderer.receiveShadows = false;
+        WorldTextMeshUtility.ApplyReadableStyle(textMesh, color);
     }
 
     private static Font GetBuiltinFont()

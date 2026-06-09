@@ -14,6 +14,7 @@ public class FirstPersonMovement : MonoBehaviour
     [Header("Grounding")]
     [SerializeField] private GroundCheck groundCheck;
     [SerializeField] private float groundAcceleration = 48f;
+    [SerializeField] private float groundDeceleration = 64f;
     [SerializeField] private float airAcceleration = 18f;
     [SerializeField, Range(0f, 1f)] private float airControlPercent = 0.5f;
     [SerializeField] private float extraGravityMultiplier = 2.35f;
@@ -21,6 +22,8 @@ public class FirstPersonMovement : MonoBehaviour
     [SerializeField] private float maxFallSpeed = 32f;
 
     private Rigidbody playerRigidbody;
+    private Vector2 moveInput;
+    private bool runInput;
     /// <summary> Functions to override movement speed. Will use the last added override. </summary>
     public List<System.Func<float>> speedOverrides = new List<System.Func<float>>();
     void Reset()
@@ -39,10 +42,21 @@ public class FirstPersonMovement : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        runInput = canRun && Input.GetKey(runningKey);
+        moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+
+        if (moveInput.sqrMagnitude > 1f)
+        {
+            moveInput.Normalize();
+        }
+    }
+
     void FixedUpdate()
     {
-        // Update IsRunning from input.
-        IsRunning = canRun && Input.GetKey(runningKey);
+        // Update IsRunning from cached input.
+        IsRunning = runInput;
 
         // Get targetMovingSpeed.
         float targetMovingSpeed = IsRunning ? runSpeed : speed;
@@ -53,15 +67,17 @@ public class FirstPersonMovement : MonoBehaviour
 
         // Get targetVelocity from input.
         Vector2 targetVelocity = new Vector2(
-            Input.GetAxis("Horizontal") * targetMovingSpeed,
-            Input.GetAxis("Vertical") * targetMovingSpeed);
+            moveInput.x * targetMovingSpeed,
+            moveInput.y * targetMovingSpeed);
 
         // Apply movement.
         if (playerRigidbody != null)
         {
             bool isGrounded = groundCheck == null || groundCheck.isGrounded;
             float controlPercent = isGrounded ? 1f : airControlPercent;
-            float acceleration = isGrounded ? groundAcceleration : airAcceleration;
+            float acceleration = isGrounded
+                ? (moveInput.sqrMagnitude > 0.0001f ? groundAcceleration : groundDeceleration)
+                : airAcceleration;
 
             Vector3 desiredWorldVelocity = transform.rotation * new Vector3(targetVelocity.x, 0f, targetVelocity.y);
             Vector3 currentVelocity = playerRigidbody.linearVelocity;

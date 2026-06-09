@@ -6,6 +6,7 @@ public class ResetPuzzleObject : Interactable
 
     void Start()
     {
+        SetPromptAction("reset the relic order");
         puzzleManager = FindFirstObjectByType<SevenObjectPuzzle>();
 
         if (puzzleManager == null)
@@ -14,6 +15,7 @@ public class ResetPuzzleObject : Interactable
         }
 
         // Connect interaction
+        onInteract.RemoveListener(TriggerReset);
         onInteract.AddListener(TriggerReset);
     }
 
@@ -22,7 +24,6 @@ public class ResetPuzzleObject : Interactable
         if (puzzleManager != null)
         {
             puzzleManager.ResetPuzzleManually();
-            Debug.Log("Puzzle manually reset by interaction!");
         }
     }
 }

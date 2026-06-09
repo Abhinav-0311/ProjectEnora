@@ -10,7 +10,6 @@ public class Tutorial : MonoBehaviour
     {
         if (Input.GetKeyDown(startKey) || Input.GetKeyDown(controllerStartKey))
         {
-            Debug.Log("Enter key pressed. Loading Level 1...");
             SceneTransitionController.LoadScene(SceneNames.Level1);
         }
     }

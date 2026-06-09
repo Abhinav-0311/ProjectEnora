@@ -136,6 +136,10 @@ public static class GameplayOverlayState
 
             DisabledBehaviours.Clear();
             RegisterAndDisable<FirstPersonController>();
+            RegisterAndDisable<FirstPersonMovement>();
+            RegisterAndDisable<Jump>();
+            RegisterAndDisable<FirstPersonLook>();
+            RegisterAndDisable<FirstPersonAudio>();
             RegisterAndDisable<Interactor>();
             RegisterAndDisable<PuzzleRaycastLogic>();
             RegisterAndDisable<PuzzleRaycastRotator>();

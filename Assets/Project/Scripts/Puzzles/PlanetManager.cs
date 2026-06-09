@@ -75,6 +75,9 @@ public class PlanetManager : MonoBehaviour
     [SerializeField] private string clueBoardObjectName = "Room2ClueBoard";
     [SerializeField] private Color boardTint = new Color(0.79f, 0.7f, 0.53f, 1f);
     [SerializeField] private Color accentColor = new Color(0.27f, 0.16f, 0.07f, 1f);
+    [SerializeField] private Color titleTextColor = new Color(0.13f, 0.07f, 0.03f, 1f);
+    [SerializeField] private Color bodyTextColor = new Color(0.11f, 0.06f, 0.03f, 1f);
+    [SerializeField] private Color hudTextColor = new Color(0.96f, 0.93f, 0.86f, 0.98f);
     [SerializeField] private Vector3 boardOffset = new Vector3(0f, 0f, 0.02f);
     [SerializeField] private float clueVisibleDistance = 2.8f;
     [SerializeField] private float hudVisibleDistance = 4.8f;
@@ -242,7 +245,7 @@ public class PlanetManager : MonoBehaviour
 
         GameObject root = new GameObject("Room2ClueFront");
         root.transform.SetParent(clueBoard.parent, true);
-        root.transform.position = clueBoard.position + clueBoard.TransformDirection(boardOffset);
+        root.transform.position = clueBoard.position + clueBoard.TransformDirection(GetReadableBoardOffset(boardOffset));
         root.transform.rotation = Quaternion.LookRotation(-clueBoard.forward, clueBoard.up);
         root.transform.localScale = Vector3.one;
         clueRoot = root;
@@ -251,23 +254,32 @@ public class PlanetManager : MonoBehaviour
             root.transform,
             "Title",
             titleFont,
-            40,
-            0.0128f,
-            accentColor,
-            new Vector3(0f, 0.19f, 0f),
+            50,
+            0.0148f,
+            titleTextColor,
+            new Vector3(0f, 0.206f, 0f),
             TextAnchor.MiddleCenter,
-            TextAlignment.Center));
+            TextAlignment.Center,
+            FontStyle.Bold));
 
         clueBodyMeshes.Add(CreateWorldTextMesh(
             root.transform,
             "Body",
             bodyFont,
-            25,
-            0.0095f,
-            new Color(0.2f, 0.12f, 0.06f, 1f),
-            new Vector3(0f, 0.036f, 0f),
+            31,
+            0.0114f,
+            bodyTextColor,
+            new Vector3(0f, 0.048f, 0f),
             TextAnchor.UpperCenter,
-            TextAlignment.Center));
+            TextAlignment.Center,
+            FontStyle.Bold));
+    }
+
+    private static Vector3 GetReadableBoardOffset(Vector3 sourceOffset)
+    {
+        float zSign = sourceOffset.z >= 0f ? 1f : -1f;
+        float liftedZ = Mathf.Max(Mathf.Abs(sourceOffset.z), 0.034f);
+        return new Vector3(sourceOffset.x, sourceOffset.y, liftedZ * zSign);
     }
 
     private void BuildHud()
@@ -287,7 +299,7 @@ public class PlanetManager : MonoBehaviour
         Image panel = CreatePanelImage(
             canvasGo.transform,
             "Panel",
-            new Vector2(320f, 96f),
+            new Vector2(430f, 128f),
             new Color(0.05f, 0.035f, 0.02f, 0.44f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
@@ -296,36 +308,36 @@ public class PlanetManager : MonoBehaviour
         CreateText(
             panel.transform,
             "Heading",
-            new Vector2(260f, 24f),
+            new Vector2(370f, 24f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(18f, -14f),
+            new Vector2(20f, -14f),
             16,
-            accentColor,
+            hudTextColor,
             TextAnchor.UpperLeft,
             FontStyle.Bold).text = "COSMIC ORDER";
 
         codeText = CreateText(
             panel.transform,
             "Code",
-            new Vector2(260f, 28f),
+            new Vector2(370f, 30f),
             new Vector2(0f, 1f),
             new Vector2(0f, 1f),
-            new Vector2(18f, -40f),
-            20,
-            accentColor,
+            new Vector2(20f, -48f),
+            17,
+            hudTextColor,
             TextAnchor.MiddleLeft,
             FontStyle.Bold);
 
         statusText = CreateText(
             panel.transform,
             "Status",
-            new Vector2(260f, 26f),
+            new Vector2(370f, 40f),
             new Vector2(0f, 0f),
             new Vector2(0f, 0f),
-            new Vector2(18f, 12f),
-            14,
-            new Color(0.95f, 0.92f, 0.85f, 0.96f),
+            new Vector2(20f, 14f),
+            13,
+            new Color(0.92f, 0.89f, 0.82f, 0.96f),
             TextAnchor.LowerLeft,
             FontStyle.Normal);
     }
@@ -377,22 +389,25 @@ public class PlanetManager : MonoBehaviour
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.Append("Worlds ");
+        builder.Append("Input: ");
 
         for (int i = 0; i < activePreset.Sequence.Length; i++)
         {
+            if (i > 0)
+            {
+                builder.Append("  ->  ");
+            }
+
             if (showSolvedState || i < playerInput.Count)
             {
-                builder.Append("[x]");
+                string value = showSolvedState && i >= playerInput.Count
+                    ? activePreset.Sequence[i]
+                    : playerInput[i];
+                builder.Append(value);
             }
             else
             {
-                builder.Append("[ ]");
-            }
-
-            if (i < activePreset.Sequence.Length - 1)
-            {
-                builder.Append(" ");
+                builder.Append("_");
             }
         }
 
@@ -642,7 +657,8 @@ public class PlanetManager : MonoBehaviour
         Color color,
         Vector3 localPosition,
         TextAnchor anchor,
-        TextAlignment alignment)
+        TextAlignment alignment,
+        FontStyle fontStyle)
     {
         GameObject textGo = new GameObject(name, typeof(TextMesh));
         textGo.transform.SetParent(parent, false);
@@ -655,14 +671,12 @@ public class PlanetManager : MonoBehaviour
         textMesh.characterSize = characterSize;
         textMesh.anchor = anchor;
         textMesh.alignment = alignment;
+        textMesh.fontStyle = fontStyle;
         textMesh.color = color;
-        textMesh.lineSpacing = 0.9f;
+        textMesh.lineSpacing = 0.88f;
         textMesh.text = string.Empty;
 
-        MeshRenderer renderer = textGo.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial = font.material;
-        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        renderer.receiveShadows = false;
+        WorldTextMeshUtility.ApplyReadableStyle(textMesh, color);
 
         return textMesh;
     }

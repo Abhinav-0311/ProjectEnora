@@ -17,18 +17,24 @@ public class NarrativeHUD : MonoBehaviour
     [SerializeField] private Text objectiveBodyText;
     [SerializeField] private Text contextTitleText;
     [SerializeField] private Text contextBodyText;
+    [SerializeField] private Text interactionPromptText;
     [SerializeField] private Text journalHintText;
     [SerializeField] private Text journalText;
     [SerializeField] private GameObject contextPanel;
+    [SerializeField] private GameObject interactionPromptPanel;
     [SerializeField] private GameObject journalPanel;
     [SerializeField] private float defaultDuration = 5f;
+    [SerializeField] private float defaultContextDuration = 5.5f;
     [SerializeField] private KeyCode journalToggleKey = KeyCode.J;
     [SerializeField] private KeyCode controllerJournalToggleKey = KeyCode.JoystickButton6;
 
     private Coroutine subtitleRoutine;
+    private Coroutine contextRoutine;
+    private Coroutine journalHintRoutine;
     private bool journalVisible;
     private bool gameplayHudVisible = true;
     private bool contextVisible;
+    private string interactionPrompt = string.Empty;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureInstance()
@@ -60,6 +66,8 @@ public class NarrativeHUD : MonoBehaviour
             || contextTitleText == null
             || contextBodyText == null
             || contextPanel == null
+            || interactionPromptText == null
+            || interactionPromptPanel == null
             || journalText == null
             || journalPanel == null)
         {
@@ -229,6 +237,29 @@ public class NarrativeHUD : MonoBehaviour
             FontStyle.Normal);
         contextPanel.SetActive(false);
 
+        interactionPromptPanel = CreatePanel(
+            transform,
+            "InteractionPromptPanel",
+            new Vector2(420f, 48f),
+            new Vector2(0.5f, 0f),
+            new Vector2(0.5f, 0f),
+            new Vector2(0f, 118f),
+            new Color(0.04f, 0.03f, 0.02f, 0.24f)).gameObject;
+
+        interactionPromptText = CreateText(
+            interactionPromptPanel.transform,
+            "InteractionPromptText",
+            bodyFont,
+            16,
+            new Vector2(360f, 28f),
+            new Vector2(0.5f, 0.5f),
+            new Vector2(0.5f, 0.5f),
+            Vector2.zero,
+            new Color(0.95f, 0.92f, 0.85f, 0.95f),
+            TextAnchor.MiddleCenter,
+            FontStyle.Italic);
+        interactionPromptPanel.SetActive(false);
+
         journalHintText = CreateText(
             transform,
             "JournalHint",
@@ -292,7 +323,6 @@ public class NarrativeHUD : MonoBehaviour
 
         if (subtitleText == null)
         {
-            Debug.Log("[Narrative] " + text);
             return;
         }
 
@@ -311,6 +341,18 @@ public class NarrativeHUD : MonoBehaviour
         {
             StopCoroutine(subtitleRoutine);
             subtitleRoutine = null;
+        }
+
+        if (contextRoutine != null)
+        {
+            StopCoroutine(contextRoutine);
+            contextRoutine = null;
+        }
+
+        if (journalHintRoutine != null)
+        {
+            StopCoroutine(journalHintRoutine);
+            journalHintRoutine = null;
         }
 
         if (subtitleText != null)
@@ -332,6 +374,7 @@ public class NarrativeHUD : MonoBehaviour
             SetJournalVisible(false);
         }
 
+        ClearInteractionPrompt();
         HideContextCard();
     }
 
@@ -341,8 +384,19 @@ public class NarrativeHUD : MonoBehaviour
         ApplyGameplayHudVisibility();
     }
 
-    public void ShowContextCard(string title, string body)
+    public void ShowContextCard(string title, string body, float duration = -1f)
     {
+        if (duration < 0f)
+        {
+            duration = defaultContextDuration;
+        }
+
+        if (contextRoutine != null)
+        {
+            StopCoroutine(contextRoutine);
+            contextRoutine = null;
+        }
+
         contextVisible = true;
 
         if (contextTitleText != null)
@@ -356,10 +410,21 @@ public class NarrativeHUD : MonoBehaviour
         }
 
         ApplyGameplayHudVisibility();
+
+        if (duration > 0f)
+        {
+            contextRoutine = StartCoroutine(HideContextCardAfterDelay(duration));
+        }
     }
 
     public void HideContextCard()
     {
+        if (contextRoutine != null)
+        {
+            StopCoroutine(contextRoutine);
+            contextRoutine = null;
+        }
+
         contextVisible = false;
 
         if (contextTitleText != null)
@@ -370,6 +435,40 @@ public class NarrativeHUD : MonoBehaviour
         if (contextBodyText != null)
         {
             contextBodyText.text = string.Empty;
+        }
+
+        ApplyGameplayHudVisibility();
+    }
+
+    public void SetInteractionPrompt(string text)
+    {
+        string resolvedText = string.IsNullOrWhiteSpace(text) ? string.Empty : text.Trim();
+        if (interactionPrompt == resolvedText)
+        {
+            return;
+        }
+
+        interactionPrompt = resolvedText;
+
+        if (interactionPromptText != null)
+        {
+            interactionPromptText.text = interactionPrompt;
+        }
+
+        ApplyGameplayHudVisibility();
+    }
+
+    public void ClearInteractionPrompt()
+    {
+        if (string.IsNullOrEmpty(interactionPrompt))
+        {
+            return;
+        }
+
+        interactionPrompt = string.Empty;
+        if (interactionPromptText != null)
+        {
+            interactionPromptText.text = string.Empty;
         }
 
         ApplyGameplayHudVisibility();
@@ -412,6 +511,11 @@ public class NarrativeHUD : MonoBehaviour
     private void HandleLogEntryAdded(NarrativeLogEntry entry)
     {
         RefreshJournal();
+
+        if (!journalVisible)
+        {
+            ShowJournalHintTemporarily("New memory recorded. Press J to read.");
+        }
     }
 
     private void RefreshJournal()
@@ -480,6 +584,45 @@ public class NarrativeHUD : MonoBehaviour
         subtitleRoutine = null;
     }
 
+    private IEnumerator HideContextCardAfterDelay(float duration)
+    {
+        yield return new WaitForSecondsRealtime(duration);
+        contextRoutine = null;
+        HideContextCard();
+    }
+
+    private void ShowJournalHintTemporarily(string message, float duration = 2.5f)
+    {
+        if (journalHintText == null || string.IsNullOrWhiteSpace(message))
+        {
+            return;
+        }
+
+        if (journalHintRoutine != null)
+        {
+            StopCoroutine(journalHintRoutine);
+        }
+
+        journalHintRoutine = StartCoroutine(JournalHintRoutine(message, duration));
+    }
+
+    private IEnumerator JournalHintRoutine(string message, float duration)
+    {
+        if (journalHintText == null)
+        {
+            yield break;
+        }
+
+        journalHintText.text = message;
+        yield return new WaitForSecondsRealtime(duration);
+
+        journalHintText.text = journalVisible
+            ? "Press J to close the memory log"
+            : "Press J to open the memory log";
+
+        journalHintRoutine = null;
+    }
+
     private void ApplyGameplayHudVisibility()
     {
         if (objectiveTitleText != null && objectiveTitleText.transform.parent != null)
@@ -509,6 +652,11 @@ public class NarrativeHUD : MonoBehaviour
         if (contextPanel != null)
         {
             contextPanel.SetActive(gameplayHudVisible && contextVisible);
+        }
+
+        if (interactionPromptPanel != null)
+        {
+            interactionPromptPanel.SetActive(gameplayHudVisible && !string.IsNullOrWhiteSpace(interactionPrompt));
         }
 
         if (journalPanel != null)

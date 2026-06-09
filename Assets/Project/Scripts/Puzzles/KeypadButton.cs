@@ -22,7 +22,7 @@ public class KeypadButton : MonoBehaviour
 
     private void Update()
     {
-        if (!Input.GetKeyDown(KeyCode.E) && !Input.GetKeyDown(KeyCode.JoystickButton2))
+        if (!InteractionInput.IsInteractPressedThisFrame())
         {
             return;
         }
@@ -35,6 +35,11 @@ public class KeypadButton : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if (!Cursor.visible)
+        {
+            return;
+        }
+
         PressButton();
     }
 
@@ -56,7 +61,9 @@ public class KeypadButton : MonoBehaviour
                 interactionRadius,
                 mainCamera.transform.forward,
                 out RaycastHit hit,
-                interactionDistance))
+                interactionDistance,
+                Physics.DefaultRaycastLayers,
+                QueryTriggerInteraction.Ignore))
         {
             return false;
         }

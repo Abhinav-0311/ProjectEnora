@@ -76,6 +76,7 @@ public class SceneTransitionController : MonoBehaviour
     {
         if (Instance == null)
         {
+            GameplayOverlayState.PrepareForSceneTransition();
             SceneManager.LoadScene(sceneName);
             return;
         }
@@ -87,6 +88,7 @@ public class SceneTransitionController : MonoBehaviour
     {
         if (Instance == null)
         {
+            GameplayOverlayState.PrepareForSceneTransition();
             SceneManager.LoadScene(buildIndex);
             return;
         }
@@ -105,7 +107,13 @@ public class SceneTransitionController : MonoBehaviour
 
         if (Instance == null)
         {
+            GameplayOverlayState.PrepareForSceneTransition();
             SceneManager.LoadScene(activeScene.name);
+            return;
+        }
+
+        if (Instance.isTransitioning)
+        {
             return;
         }
 
@@ -244,37 +252,33 @@ public class SceneTransitionController : MonoBehaviour
         fadeImage.color = Color.black;
         fadeImage.raycastTarget = false;
 
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf")
-                    ?? Resources.GetBuiltinResource<Font>("Arial.ttf");
-        if (font == null)
-        {
-            font = Font.CreateDynamicFontFromOSFont("Arial", 24);
-        }
+        Font displayFont = RuntimeTypography.GetDisplayFont();
+        Font bodyFont = RuntimeTypography.GetBodyFont();
 
         transitionTitleText = CreateText(
             transform,
             "TransitionTitle",
-            font,
-            42,
+            displayFont,
+            38,
             FontStyle.Bold,
             new Vector2(0.5f, 0.54f),
             new Vector2(0.5f, 0.54f),
             new Vector2(0f, 0f),
             new Vector2(1000f, 80f),
-            new Color(0.94f, 0.9f, 0.82f, 1f),
+            new Color(0.98f, 0.94f, 0.84f, 1f),
             TextAnchor.MiddleCenter);
 
         transitionSubtitleText = CreateText(
             transform,
             "TransitionSubtitle",
-            font,
-            22,
+            bodyFont,
+            20,
             FontStyle.Normal,
             new Vector2(0.5f, 0.48f),
             new Vector2(0.5f, 0.48f),
             new Vector2(0f, 0f),
             new Vector2(1080f, 64f),
-            new Color(0.74f, 0.69f, 0.62f, 1f),
+            new Color(0.84f, 0.78f, 0.69f, 1f),
             TextAnchor.MiddleCenter);
 
         HideTransitionCopy();
@@ -408,6 +412,11 @@ public class SceneTransitionController : MonoBehaviour
         text.verticalOverflow = VerticalWrapMode.Overflow;
         text.raycastTarget = false;
         text.text = string.Empty;
+
+        Shadow shadow = textGo.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0f, 0f, 0f, 0.42f);
+        shadow.effectDistance = new Vector2(1.5f, -1.5f);
+
         return text;
     }
 }

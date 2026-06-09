@@ -90,8 +90,6 @@ public class StoryBeatTrigger : MonoBehaviour
         {
             if (NarrativeHUD.Instance != null)
                 NarrativeHUD.Instance.ShowSubtitle(resolvedSubtitle.Trim(), resolvedSubtitleDuration);
-            else
-                Debug.Log("[Story] " + resolvedSubtitle);
         }
 
         if (voiceLine != null)

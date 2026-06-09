@@ -23,7 +23,7 @@ public class PlanetButton : MonoBehaviour
 
     private void Update()
     {
-        if (!Input.GetKeyDown(KeyCode.E) && !Input.GetKeyDown(KeyCode.JoystickButton2))
+        if (!InteractionInput.IsInteractPressedThisFrame())
         {
             return;
         }
@@ -36,6 +36,11 @@ public class PlanetButton : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if (!Cursor.visible)
+        {
+            return;
+        }
+
         PressButton();
     }
 
@@ -70,7 +75,13 @@ public class PlanetButton : MonoBehaviour
             return false;
         }
 
-        if (Physics.Raycast(mainCamera.transform.position, toButton.normalized, out RaycastHit obstructionHit, distance + 0.05f))
+        if (Physics.Raycast(
+                mainCamera.transform.position,
+                toButton.normalized,
+                out RaycastHit obstructionHit,
+                distance + 0.05f,
+                Physics.DefaultRaycastLayers,
+                QueryTriggerInteraction.Ignore))
         {
             PlanetButton obstructionButton = obstructionHit.collider.GetComponentInParent<PlanetButton>();
             return obstructionButton != null && obstructionButton == rootButton;
@@ -81,8 +92,13 @@ public class PlanetButton : MonoBehaviour
 
     private bool TryGetTargetedButton(Camera mainCamera, out PlanetButton targetedButton)
     {
-        Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        RaycastHit[] hits = Physics.SphereCastAll(ray, interactionRadius, interactionDistance);
+        Ray ray = InteractionInput.GetCenteredViewRay(mainCamera);
+        RaycastHit[] hits = Physics.SphereCastAll(
+            ray,
+            interactionRadius,
+            interactionDistance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore);
 
         float bestDistance = float.MaxValue;
         targetedButton = null;

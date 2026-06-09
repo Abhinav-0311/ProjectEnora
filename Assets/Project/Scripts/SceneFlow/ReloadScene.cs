@@ -4,9 +4,22 @@ public class ReloadScene : MonoBehaviour
 {
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.JoystickButton8))
+        bool reloadPressed = Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.JoystickButton8);
+        if (!reloadPressed)
         {
-            SceneTransitionController.ReloadCurrentScene();
+            return;
         }
+
+        if (GameplayOverlayState.IsOverlayActive)
+        {
+            return;
+        }
+
+        if (SceneTransitionController.Instance != null && SceneTransitionController.Instance.IsTransitioning)
+        {
+            return;
+        }
+
+        SceneTransitionController.ReloadCurrentScene();
     }
 }

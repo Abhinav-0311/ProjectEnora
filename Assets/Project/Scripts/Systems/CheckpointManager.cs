@@ -213,44 +213,21 @@ public sealed class CheckpointManager : MonoBehaviour
 
     private static void RestorePlayer(Vector3 position, Quaternion rotation)
     {
-        Transform player = FindPlayerTransform();
-        if (player == null)
+        GameObject playerRoot = PlayerRuntimeUtility.ResolvePlayerRoot();
+        if (playerRoot == null)
         {
             return;
         }
 
-        Behaviour characterController = player.GetComponent("CharacterController") as Behaviour;
-        if (characterController != null)
-        {
-            characterController.enabled = false;
-        }
-
-        Rigidbody rigidbody = player.GetComponent<Rigidbody>();
-        if (rigidbody != null)
-        {
-            rigidbody.linearVelocity = Vector3.zero;
-            rigidbody.angularVelocity = Vector3.zero;
-        }
-
-        player.SetPositionAndRotation(position, rotation);
-
-        if (characterController != null)
-        {
-            characterController.enabled = true;
-        }
+        playerRoot.SetActive(true);
+        PlayerRuntimeUtility.TeleportPlayer(playerRoot, position, rotation);
+        PlayerRuntimeUtility.RestoreAfterExternalControl(playerRoot);
     }
 
     private static Transform FindPlayerTransform()
     {
-        GameObject taggedPlayer = GameObject.FindGameObjectWithTag("Player");
-        if (taggedPlayer != null)
-        {
-            return taggedPlayer.transform;
-        }
-
-        GameObject fallbackPlayer = FindSceneGameObjectByName("First Person Controller")
-            ?? FindSceneGameObjectByName("PlayerCapsule");
-        return fallbackPlayer != null ? fallbackPlayer.transform : null;
+        GameObject playerRoot = PlayerRuntimeUtility.ResolvePlayerRoot();
+        return playerRoot != null ? playerRoot.transform : null;
     }
 
     private static Transform FindBossCannonTransform()

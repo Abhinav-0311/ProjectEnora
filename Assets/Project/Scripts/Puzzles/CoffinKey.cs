@@ -17,12 +17,14 @@ public class CoffinKey : Interactable
 
     void Start()
     {
+        SetPromptAction("open the coffin");
         coffinAnimator = GetComponent<Animator>();
         if (doorOpener == null)
         {
             doorOpener = FindFirstObjectByType<DoorOpener>();
         }
 
+        onInteract.RemoveListener(TriggerCoffin);
         onInteract.AddListener(TriggerCoffin);
     }
 
@@ -48,7 +50,6 @@ public class CoffinKey : Interactable
     {
         if (isCorrectKey)
         {
-            Debug.Log("Correct Key! Opening Door...");
             CorrectCoffinChosen?.Invoke(this);
             if (doorOpener != null)
             {
@@ -57,7 +58,6 @@ public class CoffinKey : Interactable
         }
         else
         {
-            Debug.Log("Wrong Key! Restarting Scene...");
             WrongCoffinChosen?.Invoke(this);
             if (wrongWhisperClip != null)
                 AudioSource.PlayClipAtPoint(wrongWhisperClip, transform.position, 0.9f);
